@@ -1,0 +1,154 @@
+% arara: xelatex
+\documentclass[12pt]{article}
+
+\usepackage{tikz} % картинки в tikz
+\usepackage{microtype} % свешивание пунктуации
+
+\usepackage{array} % для столбцов фиксированной ширины
+
+\usepackage{indentfirst} % отступ в первом параграфе
+
+\usepackage{sectsty} % для центрирования названий частей
+\allsectionsfont{\centering}
+
+\usepackage{amsmath, amssymb} % куча стандартных математических плюшек
+
+\usepackage{physics}
+\usepackage{comment}
+
+\usepackage[top=2cm, left=1.2cm, right=1.2cm, bottom=2cm]{geometry} % размер текста на странице
+
+\usepackage{lastpage} % чтобы узнать номер последней страницы
+
+\usepackage{enumitem} % дополнительные плюшки для списков
+%  например \begin{enumerate}[resume] позволяет продолжить нумерацию в новом списке
+\usepackage{caption}
+
+
+\usepackage{fancyhdr} % весёлые колонтитулы
+\pagestyle{fancy}
+\lhead{Временные ряды}
+\chead{}
+\rhead{2022-06-22, праздник номер два!}
+\lfoot{}
+\cfoot{НЕ ПАНИКОВАТЬ}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+
+\usepackage{todonotes} % для вставки в документ заметок о том, что осталось сделать
+% \todo{Здесь надо коэффициенты исправить}
+% \missingfigure{Здесь будет Последний день Помпеи}
+% \listoftodos --- печатает все поставленные \todo'шки
+
+
+% более красивые таблицы
+\usepackage{booktabs}
+% заповеди из докупентации:
+% 1. Не используйте вертикальные линни
+% 2. Не используйте двойные линии
+% 3. Единицы измерения - в шапку таблицы
+% 4. Не сокращайте .1 вместо 0.1
+% 5. Повторяющееся значение повторяйте, а не говорите "то же"
+
+
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+
+% download "Linux Libertine" fonts:
+% http://www.linuxlibertine.org/index.php?id=91&L=1
+\setmainfont{Linux Libertine O} % or Helvetica, Arial, Cambria
+% why do we need \newfontfamily:
+% http://tex.stackexchange.com/questions/91507/
+\newfontfamily{\cyrillicfonttt}{Linux Libertine O}
+
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ} % для списков с русскими буквами
+%\setlist[enumerate, 2]{label=\asbuk*),ref=\asbuk*}
+
+%% эконометрические сокращения
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\E}{E}
+\def \hb{\hat{\beta}}
+\def \hs{\hat{\sigma}}
+\def \htheta{\hat{\theta}}
+\def \s{\sigma}
+\def \hy{\hat{y}}
+\def \hY{\hat{Y}}
+\def \v1{\vec{1}}
+\def \e{\varepsilon}
+\def \he{\hat{\e}}
+\def \z{z}
+\def \hVar{\widehat{\Var}}
+\def \hCorr{\widehat{\Corr}}
+\def \hCov{\widehat{\Cov}}
+\def \cN{\mathcal{N}}
+
+
+\begin{document}
+
+\begin{enumerate}
+
+\item Рассмотрим стационарную $ARCH(1)$ модель $u_t = \sigma_t \nu_t$, где $\nu_t\sim \cN(0;1)$ и независимы,
+а $\sigma_t^2= 4 + 0.5 u_{t-1}^2$.
+
+\begin{enumerate}
+	\item Постройте 95\%-й предиктивный интервал для $u_{101}$, $u_{102}$, если $u_{100} = 2$.
+	\item Найдите автокорреляционную функцию процесса $u_t^2$.
+\end{enumerate}
+
+
+\item Посчитайте $DTW$ расстояние между рядами $a=(0, 1, 3, 1)$ и $b = (1,2,0)$. 
+Отличие двух конкретных наблюдений измеряйте с помощью $\abs{a_i - b_j}$.
+
+\item Функция $f(x)$ описывается гауссовским процессом с нулевым ожиданием $GP(0, K)$.
+Задающая ковариации ядерная функция $K$ имеет вид $K(a, b) = \exp(-(a-b)^2)$. 
+
+Постройте 95\%-й интервал для $f(1)$, если $f(0)=0$ и $f(3)=1$.
+
+На всякий: $\exp(-1)= 0.368$, $\exp(-2)=0.135$.
+
+\item Винни-Пух использует тест Диболда-Мариано для сравнения доходности двух стратегий добычи мёда. 
+Каждый день он добывает мёд у правильных пчёл и у неправильных пчёл, обозначим $d_t$ разницу добытого количества. 
+
+Помогите Винни-Пуху проверить гипотезу об одинаковой эффективности стратегий против гипотезы о разной эффективности. 
+
+Известно, что стационарная $AR(1)$ модель для $d_t$ дала оценки $\hat d_t = 0.3 + 0.7 d_{t-1}$ 
+с оценкой дисперсии случайной составляющей $\hat\sigma^2_u = 1$.
+
+
+\item В байесовской авторегрессии априорное распределение параматра имеет вид $\beta \sim \cN(1,1)$.
+Модель предполагает первое наблюдение фиксированным, а далее $y_t = \beta y_{t-1} + u_t$, где $u_t \sim \cN(0;1)$ и независимы.
+
+Ряд короткий: $y_1 = 5$, $y_2 = 6$, $y_3 = 7$.
+
+\begin{enumerate}
+	\item Найдите апостериорное распределение $\beta$.
+	\item Постройте апостериорный 95\% предиктивный интервал для $y_4$.
+\end{enumerate}
+
+\item Структура иерархического временного ряда описывается матрицей $S$. 
+Мы хотим найти оптимальную матрицу согласования $G$, преобразующую вектор всех рядов в вектор рядов нижнего уровня. 
+Выполнено естественное требование $SGS=S$. 
+
+Вспомним задачу минимизации суммы всех дисперсий ошибок согласованных прогнозов,
+$\trace \Var(y - \tilde{y} \mid \mathcal{F}_T) \to \min$ 	
+при известной матрице $W=\Var(y - \hat y \mid \mathcal{F}_T)$.
+
+Докажите, что она полностью эквивалентна задаче нахождения вектора $\hat \beta$ оценок с наименьшими дисперсиями вида $\hat \beta = G a$ в модели 
+$a = S \beta + u$,  при  $\E(u) = 0$, $\Var(u) = W$.
+
+Здесь $y$ — вектор всех рядов иерархии, $\hat y$ — вектор несогласованных прогнозов, $\tilde y$ — вектор согласованных прогнозов. 
+
+\end{enumerate}
+
+\end{document}
