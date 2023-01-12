@@ -1,0 +1,170 @@
+\documentclass[12pt]{article}
+
+\usepackage{tikz} % картинки в tikz
+\usepackage{microtype} % свешивание пунктуации
+
+\usepackage{array} % для столбцов фиксированной ширины
+
+\usepackage{indentfirst} % отступ в первом параграфе
+
+% arara: xelatex
+\usepackage{sectsty} % для центрирования названий частей
+\allsectionsfont{\centering}
+
+\usepackage{amsmath, amssymb} % куча стандартных математических плюшек
+
+\usepackage{physics}
+\usepackage{comment}
+
+\usepackage[top=2cm, left=1.2cm, right=1.2cm, bottom=2cm]{geometry} % размер текста на странице
+
+\usepackage{lastpage} % чтобы узнать номер последней страницы
+
+\usepackage{enumitem} % дополнительные плюшки для списков
+%  например \begin{enumerate}[resume] позволяет продолжить нумерацию в новом списке
+\usepackage{caption}
+
+
+\usepackage{fancyhdr} % весёлые колонтитулы
+\pagestyle{fancy}
+\lhead{Временные ряды}
+\chead{}
+\rhead{2022-03-14, праздник номер раз!}
+\lfoot{}
+\cfoot{НЕ ПАНИКОВАТЬ}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+
+\usepackage{todonotes} % для вставки в документ заметок о том, что осталось сделать
+% \todo{Здесь надо коэффициенты исправить}
+% \missingfigure{Здесь будет Последний день Помпеи}
+% \listoftodos --- печатает все поставленные \todo'шки
+
+
+% более красивые таблицы
+\usepackage{booktabs}
+% заповеди из докупентации:
+% 1. Не используйте вертикальные линни
+% 2. Не используйте двойные линии
+% 3. Единицы измерения - в шапку таблицы
+% 4. Не сокращайте .1 вместо 0.1
+% 5. Повторяющееся значение повторяйте, а не говорите "то же"
+
+
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+
+% download "Linux Libertine" fonts:
+% http://www.linuxlibertine.org/index.php?id=91&L=1
+\setmainfont{Linux Libertine O} % or Helvetica, Arial, Cambria
+% why do we need \newfontfamily:
+% http://tex.stackexchange.com/questions/91507/
+\newfontfamily{\cyrillicfonttt}{Linux Libertine O}
+
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ} % для списков с русскими буквами
+%\setlist[enumerate, 2]{label=\asbuk*),ref=\asbuk*}
+
+%% эконометрические сокращения
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\E}{E}
+\def \hb{\hat{\beta}}
+\def \hs{\hat{\sigma}}
+\def \htheta{\hat{\theta}}
+\def \s{\sigma}
+\def \hy{\hat{y}}
+\def \hY{\hat{Y}}
+\def \v1{\vec{1}}
+\def \e{\varepsilon}
+\def \he{\hat{\e}}
+\def \z{z}
+\def \hVar{\widehat{\Var}}
+\def \hCorr{\widehat{\Corr}}
+\def \hCov{\widehat{\Cov}}
+\def \cN{\mathcal{N}}
+
+
+\begin{document}
+
+Дорогие Орлицы и Орлы! Удачи вам на первом празднике по временным рядам!
+Начните с того, что напишите клятву и подпишитесь под ней:
+
+\vspace{10pt}
+\textit{Я клянусь честью студента, что буду выполнять эту работу самостоятельно.}
+\vspace{10pt}
+
+
+А теперь — задачки:
+
+\begin{enumerate}
+
+\item Известно, что $(u_t)$ — белый шум, а $(y_t)$ равен 
+\[
+y_t = \frac{1 + 3L}{1 - 0.2 L} (5 + u_t).	
+\]
+\begin{enumerate}
+	\item Найдите $\E(y_t)$, $\Var(y_t)$, $\Cov(y_t, y_s)$.
+	\item Стационарен ли процесс $(y_t)$?
+	\item Запишите рекуррентное уравнение на $y_t$, $u_t$ и их лаги, решением которого является данный процесс. 
+\end{enumerate}
+
+\item Рассмотрим уравнение $y_t = 3 + 0.5 y_{t-1} - 0.06 y_{t-2} + u_t - 0.2 u_{t-1}$, где $(u_t)$ — белый шум. 
+
+\begin{enumerate}
+	\item Запишите уравнение с помощью лаговых полиномов и разложите полиномы на сомножители. 
+	\item Присмотревшись пристальным взглядом к корням явно выпишите хотя бы одно стационарное решение этого уравнения. 
+	Является ли стационарное решение единственным?
+	\item Найдите $\Corr(y_t, y_{t-k})$ для всех стационарных решений. 
+\end{enumerate}
+
+\item Вспомним $ETS(AAN)$ модель, которая описывается системой уравнений
+
+\[
+\begin{cases}
+y_t = \ell_{t-1} + b_{t-1} + u_t \\
+\ell_t = \ell_{t-1} + b_{t-1} + \alpha u_t \\
+b_t = b_{t-1} + \beta u_t \\
+u_t \sim \cN(0;\sigma^2). \\
+% s_t = s_{t-12} + \gamma \varepsilon_t \\
+\end{cases}
+\]
+
+\begin{enumerate}
+	\item Выпишите список параметров данной модели и логарифм функции плотности $y_2$ через выписанные параметры. 
+	
+	\item Для $l_{100} = 30$, $b_{100} = 1$, $\alpha=0.2$, $\beta=0.3$, $\sigma^2 = 16$ постройте
+	интервальный прогноз на один и два шага вперёд. 
+\end{enumerate}
+
+
+\item Приведите пример стационарного процесса, 
+у которого все частные коррелляции равны нулю \textit{кроме} частной коррелляции тринадцатого порядка.
+Либо докажите, что такой процесс не существует. 
+
+
+\item Величины $x_t$ независимы и равновероятно принимают значения $0$ или $1$ каждая. 
+Рассмотрим процесс $r_t = x_t \cdot x_{t-1} - 0.25$.
+\begin{enumerate}
+	\item Стационарен ли процесс $(r_t)$?
+	\item Илон Маск утверждает, что это типичный $MA(1)$ процесс, а потому он представим в виде $r_t = u_t + \alpha u_{t-1}$.
+	
+	Прав ли Илон Маск? Если прав, то явно запишите $u_t$ через $(x_t)$ и константы. 
+\end{enumerate}
+
+\item Приведите пример стационарного процесса $(y_t)$ такого, что $\abs{\Corr(y_t, y_s)} < 1$, 
+однако $\sup_{s, t} \abs{\Corr(y_t, y_s)} = 1$. Либо докажите, что данный процесс не существует. 
+
+
+\end{enumerate}
+
+\end{document}
