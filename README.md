@@ -9,8 +9,8 @@
 
 Страницы курсов:
 
-http://wiki.cs.hse.ru/Моделирование_временных_рядов_20/21
+http://wiki.cs.hse.ru/Time_series_modelling_22_23
 
 http://wiki.cs.hse.ru/Time_series_modelling_21_22
 
-http://wiki.cs.hse.ru/Time_series_modelling_22_23
+http://wiki.cs.hse.ru/Моделирование_временных_рядов_20/21
