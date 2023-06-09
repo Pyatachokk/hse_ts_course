@@ -5,3 +5,7 @@
 *.xlsx
 venv
 *.csv
+*.aux
+*.log
+*.synctex.gz
+

@@ -1,0 +1,189 @@
+% arara: xelatex
+
+\documentclass[12pt]{article} % размер шрифта
+
+\usepackage{etex} % extend
+\usepackage{tikz} % картинки в tikz
+\usepackage{microtype} % свешивание пунктуации
+
+\usepackage{diagbox}
+\usepackage{slashbox}
+\usepackage{tabularx}
+\usepackage{comment}
+
+\usepackage{tikzlings}
+\usepackage{tikzducks}
+
+\usepackage{array} % для столбцов фиксированной ширины
+\usepackage{verbatim} % для вставки комментариев
+
+\usepackage{indentfirst} % отступ в первом параграфе
+
+\usepackage{sectsty} % для центрирования названий частей
+
+\allsectionsfont{\centering} % приказываем центрировать все sections
+
+\usepackage{amsmath,  amsfonts} % куча стандартных математических плюшек
+
+\usepackage[top=1.5cm,  left=1.5cm,  right=1.5cm,  bottom=1.5cm]{geometry} % размер текста на странице
+
+\usepackage{lastpage} % чтобы узнать номер последней страницы
+
+\usepackage{enumitem} % дополнительные плюшки для списков
+%  например \begin{enumerate}[resume] позволяет продолжить нумерацию в новом списке
+\usepackage{caption} % подписи к картинкам без плавающего окружения figure
+
+\usepackage{comment} % длинные комментарии
+
+\usepackage{fancyhdr} % весёлые колонтитулы
+\pagestyle{fancy}
+\lhead{Моделирование временных рядов — 2023,  НИУ-ВШЭ}
+\rhead{Домашняя работа: задачки}
+\chead{}
+\cfoot{}
+\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\usepackage{physics}
+
+\usepackage{url}
+
+\usepackage{todonotes} % для вставки в документ заметок о том,  что осталось сделать
+% \todo{Здесь надо коэффициенты исправить}
+% \missingfigure{Здесь будет картина Последний день Помпеи}
+% команда \listoftodos — печатает все поставленные \todo'шки
+
+\usepackage{booktabs} % красивые таблицы
+% заповеди из документации:
+% 1. Не используйте вертикальные линии
+% 2. Не используйте двойные линии
+% 3. Единицы измерения помещайте в шапку таблицы
+% 4. Не сокращайте .1 вместо 0.1
+% 5. Повторяющееся значение повторяйте,  а не говорите "то же"
+
+\usepackage{fontspec} % поддержка разных шрифтов
+\usepackage{polyglossia} % поддержка разных языков
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+
+\setmainfont{Linux Libertine O} % выбираем шрифт
+
+% можно также попробовать Helvetica,  Arial,  Cambria и т.Д.
+
+% чтобы использовать шрифт Linux Libertine на личном компе, 
+% его надо предварительно скачать по ссылке
+% http://www.linuxlibertine.org/index.php?id=91&L=1
+
+\newfontfamily{\cyrillicfonttt}{Linux Libertine O}
+% пояснение зачем нужно шаманство с \newfontfamily
+% http://tex.stackexchange.com/questions/91507/
+
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ} % для списков с русскими буквами
+\setlist[enumerate,  2]{label=\asbuk*), ref=\asbuk*} % списки уровня 2 будут буквами а) б) \ldots 
+
+%% эконометрические и вероятностные сокращения
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\D}{Var}
+\newcommand \hb{\hat{\beta}}
+\newcommand \hs{\hat{\sigma}}
+\newcommand \htheta{\hat{\theta}}
+\newcommand \s{\sigma}
+\newcommand \hy{\hat{y}}
+\newcommand \hY{\hat{Y}}
+\newcommand \e{\varepsilon}
+\newcommand \he{\hat{\e}}
+\newcommand \hVar{\widehat{\Var}}
+\newcommand \hCorr{\widehat{\Corr}}
+\newcommand \hCov{\widehat{\Cov}}
+\newcommand \cN{\mathcal{N}}
+\newcommand{\R}{\mathbb{R}}
+
+
+
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+
+%\fbox{
+%  \begin{minipage}{24em}
+%    Фамилия,  имя и номер группы (печатными буквами):\vspace*{3ex}\par
+%    \noindent\dotfill\vspace{2mm}
+%  \end{minipage}
+%  \begin{tabular}{@{}l p{0.8cm} p{0.8cm} p{0.8cm} p{0.8cm} p{0.8cm}@{}}
+% %\toprule
+% Задача & 1 & 2 & 3 & 4 & 5\\ 
+% \midrule
+% Балл  &  &  & & & \\
+% \midrule
+% %\bottomrule
+% \end{tabular}
+% }    
+
+
+% делаем короче интервал в списках
+\setlength{\itemsep}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+
+\begin{document}
+
+
+\begin{enumerate}
+
+    \item С помощью алгоритма DWT найдите расстояние между рядами
+    \[
+    x = (1, 2, 4, 2, 1) \quad \text{ и } \quad y = (1, 4, 1).    
+    \]
+    В качестве расстояния между отдельными наблюдениями используйте разницу $|x_i - y_j|$.
+    
+    \item Исследователь Василий применил дискретное преобразование Фурье (с делением на число наблюдений) к некоторому ряду,
+    но записал только первые четыре значения преобразованного ряда:
+    \[
+    X = (3.5, -0.5 + i\sqrt{3}/2 , -0.5 + i\sqrt{3}/6, -0.5, \ldots).    
+    \]
+    Сначала он думал, что всё пропало, но потом понял, что данных достаточно, 
+    чтобы полностью восстановить исходный ряд.
+    
+    \begin{enumerate}
+        \item Сколько наблюдений было в исходном ряде?
+        \item Восстановите исходный ряд и забытые Васей значения преобразованного ряда.
+    \end{enumerate}
+    
+    \item Величины $X_1$, $X_2$, $X_3$ распределены независимо и равномерно на
+    отрезке $[0; 1]$. Рассмотрим $L = \min\{X_1, X_2\}$, $R = \max\{X_1, X_2, X_3\}$.
+    
+    Найдите копулу $C$ величин $L$ и $R$. 
+
+    \item Рассмотрим систему уравнений:
+    \[
+    \begin{cases}
+    x_t = 1 - \frac{1}{6}x_{t-1} + \frac{2}{6}y_{t-1} + u^x_t \\
+    y_t = 2 - \frac{4}{6}x_{t-1} + \frac{1}{6}y_{t-1} + u^y_t
+    \end{cases},
+    \]
+    где $u_t$ — двумерный белый шум.
+    \begin{enumerate}
+    \item Есть ли у данной системы стационарное решение?
+    \item Если стационарное решение есть, то найдите $\E(x_t)$ и $\E(y_t)$ для него,
+    если стационарного решения нет, то для процесса с начальными условиями $x_0 = 0$, $y_0 = 0$.
+    \end{enumerate}
+    
+    \item Василий предполагает, что $y_t$ описывается Гауссовским процессом:
+    \[
+    \begin{cases} 
+        y_t = ... \\
+    \end{cases};
+    \]
+
+    У Василия всего два наблюдения $y_0 = 0$ и $y_1 = 1$. 
+
+    Постройте точечный и 95\%-й интервальный прогноз для $y_3$.
+
+\end{enumerate}
+
+
+\end{document}
