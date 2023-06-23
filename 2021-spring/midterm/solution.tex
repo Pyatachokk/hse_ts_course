@@ -1,0 +1,550 @@
+\documentclass[a4paper,14pt]{article}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1,T2A]{fontenc}
+\usepackage{amsmath,amsthm,amssymb}  
+\usepackage{mathtext}
+\usepackage[english,russian]{babel}
+
+\usepackage[table]{xcolor}
+\usepackage{ucs}
+\usepackage{textcomp}
+\usepackage{array}
+\usepackage{indentfirst}
+\usepackage{enumerate}
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows}
+\usepackage{icomma}
+\usepackage{gensymb}
+\usepackage{multicol}
+\usepackage{bussproofs}
+\usepackage{subfiles}
+\usepackage{parskip}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{mathtools}
+\usepackage{titling}
+
+\setlength{\droptitle}{-8em} 
+
+\usepackage{graphicx}
+\graphicspath{ {./graphics/} }
+
+\setlength{\parindent}{1cm}
+
+\RequirePackage[colorlinks=true, urlcolor=blue]{hyperref}
+
+\def\dotminus{\mathbin{\ooalign{\hss\raise1ex\hbox{.}\hss\cr\mathsurround=0pt$-$}}}
+\renewcommand{\C}{\mathbb{C}}
+\newcommand{\N} {\mathbb{N}}
+\newcommand{\Q} {\mathbb{Q}}
+\newcommand{\Z} {\mathbb{Z}}
+\newcommand{\R} {\mathbb{R}}
+\newcommand{\ord} {\mathop{\rm ord}}
+\newcommand{\Ima}{\mathop{\rm Im}}
+\newcommand{\rk}{\mathop{\rm rk}}
+\newcommand{\vect}{\mathop{\rm vec}}
+\newcommand{\diag}{\mathop{\rm diag}}
+\newcommand{\cond}{\mspace{3mu}{|}\mspace{3mu}}
+
+\renewcommand{\r}{\right}
+\renewcommand{\l}{\left}
+\newcommand{\scalar}[2]{\left\langle #1, #2 \right\rangle}
+\newcommand{\Sum}[2]{\overset{#2}{\underset{#1}{\sum}}}
+\newcommand{\Lim}[2]{\lim\limits_{#1 \rightarrow #2}}
+\renewcommand{\baselinestretch}{1.2} % междустрочный интервал
+%%% Работа с русским языком
+\usepackage{cmap}					% поиск в PDF
+\usepackage{mathtext} 				% русские буквы в формулах
+\usepackage[T2A]{fontenc}			% кодировка
+\usepackage[utf8]{inputenc}			% кодировка исходного текста
+\usepackage[english,russian]{babel}	% локализация и переносы
+
+%%% Дополнительная работа с математикой
+\usepackage{amsfonts,amssymb,amsthm,mathtools} % AMS
+\usepackage{amsmath}
+\usepackage{icomma} % "Умная" запятая: $0,2$ --- число, $0, 2$ --- перечисление
+
+%% Номера формул
+%\mathtoolsset{showonlyrefs=true} % Показывать номера только у тех формул, на которые есть \eqref{} в тексте.
+%% Шрифты
+\usepackage{euscript}	 % Шрифт Евклид
+\usepackage{mathrsfs} % Красивый матшрифт
+
+% Межстрочный интервал
+\usepackage{setspace}
+%\полуторный интервал
+\onehalfspacing
+% Поля страницы
+\usepackage[left=10mm, top=30mm, right=10mm, bottom=30mm, nohead, nofoot]{geometry}
+
+%% Свои команды
+\DeclareMathOperator{\sgn}{\mathop{sgn}}
+
+%% Перенос знаков в формулах (по Львовскому)
+\newcommand*{\hm}[1]{#1\nobreak\discretionary{}
+	{\hbox{$\mathsurround=0pt #1$}}{}}
+
+%%% Работа с картинками
+\usepackage{graphicx}  % Для вставки рисунков
+\graphicspath{ {./images/} }  % папки с картинками
+\setlength\fboxsep{3pt} % Отступ рамки \fbox{} от рисунка
+\setlength\fboxrule{1pt} % Толщина линий рамки \fbox{}
+\usepackage{wrapfig} % Обтекание рисунков и таблиц текстом
+
+%%% Работа с таблицами
+\usepackage{array,tabularx,tabulary,booktabs} % Дополнительная работа с таблицами
+\usepackage{longtable}  % Длинные таблицы
+\usepackage{multirow} % Слияние строк в таблице
+
+
+\usepackage{indentfirst}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage[table]{xcolor}
+
+% код в matlab
+\usepackage{matlab-prettifier}
+\usepackage{listings,lstautogobble}
+\usepackage[russian]{babel}
+\lstset{language=R, extendedchars=\true}
+\lstset{autogobble=true}
+
+% красивая рамочка
+\usepackage{tcolorbox} 
+
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\E}{E}
+\def \hb{\hat{\beta}}
+\def \hs{\hat{\sigma}}
+\def \htheta{\hat{\theta}}
+\def \s{\sigma}
+\def \hy{\hat{y}}
+\def \hY{\hat{Y}}
+\def \v1{\vec{1}}
+\def \e{\varepsilon}
+\def \he{\hat{\e}}
+\def \z{z}
+\def \hVar{\widehat{\Var}}
+\def \hCorr{\widehat{\Corr}}
+\def \hCov{\widehat{\Cov}}
+\def \cN{\mathcal{N}}
+
+\usepackage{etaremune}
+
+\title{TS midterm 2022}
+\date{}
+% \pagenumbering{gobble}
+\usepackage{layout}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{enumerate}
+
+\item Известно, что $(u_t)$ — белый шум, а $(y_t)$ равен 
+\[
+y_t = \frac{1 + 3L}{1 - 0.2 L} (5 + u_t).	
+\]
+\begin{enumerate}
+	\item Найдите $\E(y_t)$, $\Var(y_t)$, $\Cov(y_t, y_s)$.
+	\item Стационарен ли процесс $(y_t)$?
+	\item Запишите рекуррентное уравнение на $y_t$, $u_t$ и их лаги, решением которого является данный процесс. 
+\end{enumerate}
+
+{\bf Решение:}
+
+Проще всего выполнять пункты в обратном порядке:
+\begin{etaremune}
+	\item        
+
+ \[\begin{aligned}
+y_t = \frac{1 + 3L}{1 - 0.2 L} (5 + u_t) 
+	\end{aligned}\]
+  \[\begin{aligned}
+y_t - 0.2y_{t-1} = (1 + 3L) (5 + u_t) 
+	\end{aligned}\]
+   \[\begin{aligned}
+y_t - 0.2y_{t-1} = 20 +  u_t + 3u_{t-1}
+	\end{aligned}\]
+ \[\begin{aligned}
+y_t = 0.2y_{t-1} +  u_t + 3u_{t-1} + 20
+	\end{aligned}\]
+
+ 
+	\item Перед нами ARMA(1,1). MA-часть стационарна по определению. Проверим стационарность AR-части с помощью корней лагового многочлена:
+ \[\begin{aligned}
+1-0.2L = 0
+	\end{aligned}\]
+  \[\begin{aligned}
+L = 5
+	\end{aligned}\]
+Единственный корень $L=5 > 1$, следовательно, процесс стационарен
+ 
+	\item \[\begin{aligned}
+		\E(y_t) = \E(\frac{1 + 3L}{1 - 0.2 L} (5 + u_t)) = \E(\frac{5 + 15L}{1 - 0.2 L} + u_t\frac{1 + 3L}{1 - 0.2 L}) =  \\ = \E(\frac{5 + 15L}{1 - 0.2 L}) + \frac{1 + 3L}{1 - 0.2 L}\E(u_t)  = \E(\frac{5 + 15}{1 - 0.2}) + 0 = \frac{5 + 15}{1 - 0.2} = 25
+	\end{aligned}\]
+
+Заметим, что $\Var(y_t) = \Var(y_{t-1})$, так как процесс стационарен, поэтому:
+
+  \[\begin{aligned}
+\Var(y_t) = \Var(0.2y_{t-1} +  u_t + 3u_{t-1} + 20)
+	\end{aligned}\]
+   \[\begin{aligned}
+\Var(y_t) = 0.04\Var(y_{t}) +  \s^2 + 9\s^2 + 2\Cov(0.2y_{t-1}, u_t) + 2\Cov(0.2y_{t-1}, 3u_{t-1}) + 2\Cov(u_t, u_{t-1})
+	\end{aligned}\]
+    \[\begin{aligned}
+0.96\Var(y_t) = 10\s^2 + 0 + 1.2\Cov(0.2y_{t-2} + u_{t-1} + 3u_{t-2}, u_{t-1}) + 0
+	\end{aligned}\]
+    \[\begin{aligned}
+\Var(y_t) = \frac{10\s^2 + 1.2\s^2}{0.96} = \frac{35\s^2}{3}
+	\end{aligned}\]
+
+ 
+
+Теперь посчитаем ковариацию в общем виде:
+
+
+$$
+\Cov(y_t, y_s) = \Cov(0.2y_{t-1} +  u_t + 3u_{t-1}, 0.2y_{s-1} +  u_s + 3u_{s-1}) = 0.04\Cov(y_{t-1}, y_{s-1}) + 0.2\Cov(y_{t-1}, u_{s}) + $$
+$$+ 0.6\Cov(y_{t-1}, u_{s-1})  +0.2\Cov(y_{s-1}, u_{t}) + \Cov(u_{t}, u_{s}) + 3\Cov(u_{t}, u_{s-1}) + 0.6\Cov(y_{s-1}, u_{t-1}) 
+$$
+$$+ 3\Cov(u_{t-1}, u_{s}) + 9\Cov(u_{t-1}, u_{s-1})$$
+
+ Можно заметить, что в соответствии с данной формулой ACF сводится к следующему виду:
+\[
+\begin{cases}
+\gamma_1 = 0.04\gamma_1 + 0.2\s^2 + 1.8\s^2 + 3\s^2 \\
+\gamma_2 = 0.04\gamma_1  \\
+\gamma_3 = 0.04^2\gamma_1 \\
+\gamma_4 = 0.04^3\gamma_1 \\
+... \\
+\end{cases}
+\]
+\[
+\begin{cases}
+\gamma_1 = \frac{5}{0.96}\s^2 \\
+\gamma_t = 0.04^{t-1}\gamma_1, \quad t > 1  \\
+\end{cases}
+\]
+ 
+\end{etaremune}
+
+\item Рассмотрим уравнение $y_t = 3 + 0.5 y_{t-1} - 0.06 y_{t-2} + u_t - 0.2 u_{t-1}$, где $(u_t)$ — белый шум. 
+
+\begin{enumerate}
+	\item Запишите уравнение с помощью лаговых полиномов и разложите полиномы на сомножители. 
+	\item Присмотревшись пристальным взглядом к корням явно выпишите хотя бы одно стационарное решение этого уравнения. 
+	Является ли стационарное решение единственным?
+	\item Найдите $\Corr(y_t, y_{t-k})$ для всех стационарных решений. 
+\end{enumerate}
+
+{\bf Решение:}
+
+\begin{enumerate}
+	\item $$y_t = 3 + 0.5 y_{t-1} - 0.06 y_{t-2} + u_t - 0.2 u_{t-1}$$
+     \[\begin{aligned}
+(1-0.5L+0.06L^2)y_t = 3 + (1-0.2L)u_t
+	\end{aligned}\]
+      \[\begin{aligned}
+0.06(L-5)(L-\frac{10}{3})y_t = 3 + (1-0.2L)u_t
+	\end{aligned}\]
+       \[\begin{aligned}
+y_t = \frac{3}{0.06(L-5)(L-\frac{10}{3})} + \frac{(1-0.2L)u_t}{ 0.06(L-5)(L-\frac{10}{3})} 
+	\end{aligned}\]
+       \[\begin{aligned}
+y_t = \frac{3}{0.56} + \frac{(1-0.2L)u_t}{ 0.06(L-5)(L-\frac{10}{3})} 
+	\end{aligned}\]
+
+
+
+ 
+	\item Оба корня лагового многочлена больше 1, следовательно, решение стационарно и единственно
+
+ Заметим, что:
+       \[\begin{aligned}
+1-0.2L =  \frac{-5 + L}{-5} 
+	\end{aligned}\]
+
+        \[\begin{aligned}
+y_t = \frac{3}{0.56} + \frac{u_t}{1-0.3L} 
+	\end{aligned}\]
+
+ Согласно формуле для суммы бесконечно убывающей геометрической прогрессии:
+         \[\begin{aligned}
+\frac{1}{1-0.3L}  = 1 + 0.3L + (0.3L)^2 + (0.3L)^2 + ...
+	\end{aligned}\]
+
+         \[\begin{aligned}
+y_t = \frac{3}{0.56} + u_t + 0.3u_{t-1} + 0.09u_{t-2} + 0.027u_{t-3} + ...
+	\end{aligned}\]
+ 
+	\item 
+
+          \[\begin{aligned}
+\Corr(y_{t}, y_{t-k}) = \frac{\gamma_k}{\gamma_0} 
+	\end{aligned}\]
+
+        \[\begin{aligned}
+y_t = \frac{3}{0.56} + \frac{u_t}{1-0.3L} 
+	\end{aligned}\]
+         \[\begin{aligned}
+y_t(1-0.3L) = 3.75 + u_t
+	\end{aligned}\]
+          \[\begin{aligned}
+y_t = 0.3y_{t-1} + u_t + 3.75
+	\end{aligned}\]
+           \[\begin{aligned}
+\gamma_0 = \Var(y_t) = \Var(0.3y_{t-1} + u_t) = 0.09\Var(y_t) + \s^2 + 0
+	\end{aligned}\]
+           \[\begin{aligned}
+\gamma_0 = \frac{\s^2}{0.91}
+	\end{aligned}\]
+            \[\begin{aligned}
+\gamma_k = \Cov(y_t, y_{t-k}) = \Cov(0.3^ky_{t-k} + 0.3^{k-1}u_{t-k+1} + 0.3^{k-2}u_{t-k+2} + ... +u_t , y_{t-k})  = 0.3^k\gamma_0 + 0
+	\end{aligned}\]
+            \[\begin{aligned}
+\gamma_k = \Cov(y_t, y_{t-k}) = \Cov(0.3^ky_{t-k} + 0.3^{k-1}u_{t-k+1} + 0.3^{k-2}u_{t-k+2} + ... +u_t , y_{t-k})  = \s^2\frac{0.3^k}{0.91}
+	\end{aligned}\]
+ 
+\end{enumerate}
+
+
+
+\item Вспомним $ETS(AAN)$ модель, которая описывается системой уравнений
+
+\[
+\begin{cases}
+y_t = \ell_{t-1} + b_{t-1} + u_t \\
+\ell_t = \ell_{t-1} + b_{t-1} + \alpha u_t \\
+b_t = b_{t-1} + \beta u_t \\
+u_t \sim \cN(0;\sigma^2). \\
+% s_t = s_{t-12} + \gamma \varepsilon_t \\
+\end{cases}
+\]
+
+\begin{enumerate}
+	\item Выпишите список параметров данной модели и логарифм функции плотности $y_2$ через выписанные параметры. 
+	
+	\item Для $l_{100} = 30$, $b_{100} = 1$, $\alpha=0.2$, $\beta=0.3$, $\sigma^2 = 16$ постройте
+	интервальный прогноз на один и два шага вперёд. 
+\end{enumerate}
+
+{\bf Решение:}
+
+\begin{enumerate}
+	\item Параметры модели: $b_0, l_0, \alpha, \beta, \s^2$
+
+             \[\begin{aligned}
+y_2 = l_0 + b_0 + \alpha u_1 + b_0 + \beta u_1 + u_2
+	\end{aligned}\]
+              \[\begin{aligned}
+y_2 = l_0 + 2b_0 + (\alpha + \beta) u_1 + u_2
+	\end{aligned}\]
+
+               \[\begin{aligned}
+\E(y_2) = l_0 + 2b_0
+	\end{aligned}\]
+ 
+                \[\begin{aligned}
+\Var(y_2) = (\alpha + \beta)^2*\s^2 + s^2 = \s^2(1 + (\alpha + \beta)^2)
+	\end{aligned}\]
+                 \[\begin{aligned}
+\cN(\mu;\sigma^2) = \frac{1}{\sqrt{2\pi \s^2}} \exp{\frac{-(x-\mu)^2}{2\s^2}}
+	\end{aligned}\]
+                 \[\begin{aligned}
+f_{y_2}(x) = \frac{1}{\sqrt{2\pi \s^2(1 + (\alpha + \beta)^2)}} \exp{\frac{-(x-(l_0 + 2b_0))^2}{2\s^2(1 + (\alpha + \beta)^2)}} 
+	\end{aligned}\]
+                  \[\begin{aligned}
+log(f_{y_2}(x)) = - \frac{1}{2}log(2\pi \s^2(1 + (\alpha + \beta)^2)) - \frac{(x-(l_0 + 2b_0))^2}{2\s^2(1 + (\alpha + \beta)^2)}
+	\end{aligned}\]
+ 
+	\item    
+ 
+ \[\begin{aligned}
+PCI(95\%) = [ \hat{y} - 1.96\sqrt{\Var(\hat{y})}; \hat{y} + 1.96\sqrt{\Var(\hat{y})}]
+	\end{aligned}\]
+
+  \[\begin{aligned}
+y_{101} = l_{100} + b_{100} + u_{101} = 31 + u_{101} 
+	\end{aligned}\]
+   \[\begin{aligned}
+\E(y_{101}|I_{100}) = 31 
+	\end{aligned}\]
+    \[\begin{aligned}
+\Var(y_{101}|I_{100}) = \s^2 = 16
+	\end{aligned}\]
+  \[\begin{aligned}
+PCI(95\%) = [ 31 - 1.96*4; 31+ 1.96*4]
+	\end{aligned}\]
+   \[\begin{aligned}
+PCI(95\%) = [ 23.16; 38.84]
+	\end{aligned}\]
+
+   \[\begin{aligned}
+y_{102} = l_{101} + b_{101} + u_{102} = l_{100} + b_{100} + \alpha u_{101} + b_{100} + \beta u_{101} + u_{102}
+	\end{aligned}\]
+    \[\begin{aligned}
+y_{102} = 30+1+0.2 u_{101} + 1 + 0.3 u_{101} + u_{102} = 32 + 0.5u_{101} + u_{102}
+	\end{aligned}\]
+   \[\begin{aligned}
+\E(y_{102}|I_{100}) = 32 
+	\end{aligned}\]
+    \[\begin{aligned}
+\Var(y_{102}|I_{100}) = 0.25\s^2 + \s^2 = 20
+	\end{aligned}\]
+  \[\begin{aligned}
+PCI(95\%) = [ 32 - 1.96\sqrt{20}; 32+ 1.96\sqrt{20}]
+	\end{aligned}\]
+   \[\begin{aligned}
+PCI(95\%) \approx [ 22.2; 39.8]
+	\end{aligned}\]
+
+ 
+\end{enumerate}
+
+
+\item Приведите пример стационарного процесса, 
+у которого все частные коррелляции равны нулю \textit{кроме} частной коррелляции тринадцатого порядка.
+Либо докажите, что такой процесс не существует. 
+
+{\bf Решение:}
+
+Кажется, что самый очевидный пример - это AR(13), где единственный ненулевой коэффициент стоит перед 13 лагом. Как известно, у AR(p) процесса частные автокорреляции равны 0 после p-й частной автокорреляции. Если же сделать все коэффициенты, кроме одного, равными нулю, то останется лишь одна ненулевая частная автокорреляция при единственном ненулевом коэффициенте. Единственное условие, которое нужно выполнить - это стационарность. AR(p) процесс стационарен, если корни лагового многочлена больше единицы, следовательно:
+
+  \[\begin{aligned}
+y_{t} = \alpha + \beta_{13}*y_{t-13} + \epsilon_t
+	\end{aligned}\]
+   \[\begin{aligned}
+(1-\beta_{13}L^{13}) = 0
+	\end{aligned}\]
+    \[\begin{aligned}
+L =  \sqrt[13]{\frac{1}{\beta_{13}}} > 1
+	\end{aligned}\]
+Например, пусть $\beta_{13} = 0.2$ и для определённости $\alpha = 0.5$, тогда мы имеем стационарный процесс, у которого все частные автокорреляции равны нулю, кроме частной автокорреляции 13 порядка:
+  \[\begin{aligned}
+y_{t} = 0.5 + 0.2*y_{t-13} + \epsilon_t
+	\end{aligned}\]
+
+\item Величины $x_t$ независимы и равновероятно принимают значения $0$ или $1$ каждая. 
+Рассмотрим процесс $r_t = x_t \cdot x_{t-1} - 0.25$.
+\begin{enumerate}
+	\item Стационарен ли процесс $(r_t)$?
+	\item Илон Маск утверждает, что это типичный $MA(1)$ процесс, а потому он представим в виде $r_t = u_t + \alpha u_{t-1}$.
+	
+	Прав ли Илон Маск? Если прав, то явно запишите $u_t$ через $(x_t)$ и константы. 
+\end{enumerate}
+
+{\bf Решение:}
+
+\begin{enumerate}
+	\item Процесс стационарен, если его математическое ожидание, дисперсия и ковариация не зависят от t.
+
+ Описанные случайные величины по сути принадлежат к распределению Бернулли с p = 0.5. 
+
+ Исходя из того, что обе величины бинарные, их произведение также принимает либо значение 1, либо значение 0, но уже с другими вероятностями. Отметим также, что возведение в квадрат не меняет значения бинарных величин. Построим соответствующие таблицы:
+
+ \[
+\begin{array}{w{c}{8mm}|w{c}{8mm}}
+x_t & P(x_t) \\
+\hline
+0 & 1/2 \\
+1 & 1/2 
+\end{array}
+\qquad
+\begin{array}{c|c}
+x_{t-1} & P(x_{t-1}) \\
+\hline
+0 & 1/2 \\
+1 & 1/2 
+\end{array}
+\qquad
+\begin{array}{c|c}
+x_t*x_{t-1} & P(x_t*x_{t-1}) \\
+\hline
+0 & 3/4 \\
+1 & 1/4 
+\end{array}
+\]
+
+  \[\begin{aligned}
+\E(r_t) = \E(x_t * x_{t-1} - 0.25) = \E(x_t * x_{t-1}) - 0.25 = 0*\frac{3}{4} + 1*\frac{1}{4} - 0.25 = 0
+	\end{aligned}\]
+  \[\begin{aligned}
+\Var(r_t) = \Var(x_t * x_{t-1} - 0.25) = \Var(x_t * x_{t-1}) = \E((x_t * x_{t-1})^2) - \E(x_t * x_{t-1})^2
+	\end{aligned}\]
+ \[\begin{aligned}
+\Var(r_t) = \E(x_t^2 * x_{t-1}^2) - \E(x_t * x_{t-1})^2 = \frac{1}{4} - \frac{1}{16} = \frac{3}{16}
+	\end{aligned}\]
+  \[\begin{aligned}
+\Cov(r_t, r_{t-k}) = \Cov(x_t * x_{t-1}, x_{t-k} * x_{t-1-k}) = \E(x_t * x_{t-1} * x_{t-k} * x_{t-1-k}) - \E(x_t * x_{t-1})\E( x_{t-k} * x_{t-1-k})
+	\end{aligned}\]
+\[
+\begin{cases}
+\gamma_1 = \frac{1}{8} - \frac{1}{16} = \frac{1}{16} \\
+\gamma_k = \frac{1}{16} - \frac{1}{16} = 0, \quad k > 1  \\
+\end{cases}
+\]
+
+ Легко заметить, что ни математическое ожидание, ни дисперсия, ни ковариация не зависят от момента времени, следовательно, процесс стационарен.
+ 
+	\item Илон Маск прав. Можно заметить, что функция автокорреляции обрывается после первого лага, что соответствует MA(1). Представим шум $u_t$ через $(x_t)$ и константы.
+
+  \[\begin{aligned}
+r_t = u_t + \alpha u_{t-1}
+	\end{aligned}\]
+   \[\begin{aligned}
+\Var(r_t) = \Var(u_t + \alpha u_{t-1}) = \s^2 + \alpha^2\s^2 = s^2(1+\alpha^2)
+	\end{aligned}\]
+    \[\begin{aligned}
+\Cov(r_t, r_{t-1}) = \Cov(u_t + \alpha u_{t-1}, u_{t-1} + \alpha u_{t-2}) = \alpha \s^2 
+	\end{aligned}\]
+\[
+\begin{cases}
+s^2(1+\alpha^2) = \frac{3}{16} \\
+\alpha \s^2  = \frac{1}{16} \\
+\end{cases}
+\]
+    \[\begin{aligned}
+\frac{s^2(1+\alpha^2)}{\alpha \s^2} = \frac{1+\alpha^2}{\alpha}  = 3
+	\end{aligned}\]
+    \[\begin{aligned}
+\alpha_1 = \frac{3+\sqrt{5}}{2} \approx 2.6
+	\end{aligned}\]
+     \[\begin{aligned}
+\alpha_2 = \frac{3-\sqrt{5}}{2} \approx 0.4
+	\end{aligned}\]
+   \[\begin{aligned}
+r_t = u_t + \alpha u_{t-1}
+	\end{aligned}\]
+    \[\begin{aligned}
+x_t * x_{t-1} - 0.25 = u_t(1 + \alpha L)
+	\end{aligned}\]
+     \[\begin{aligned}
+ u_t = \frac{x_t * x_{t-1}}{1 + \alpha L} - \frac{0.25}{1 + \alpha}
+	\end{aligned}\]
+ Заметим, что есть возможность воспользоваться формулой суммы бесконечно убывающей прогрессии, поэтому возьмём $\alpha \approx 0.4$:
+      \[\begin{aligned}
+ u_t = \frac{x_t * x_{t-1}}{1 + 0.4 L} - 0.2
+	\end{aligned}\]
+       \[\begin{aligned}
+ u_t = - 0.2 + x_t * x_{t-1} - 0.4x_{t-1} * x_{t-2} + 0.4^2x_{t-2} * x_{t-3} - 0.4^3x_{t-3} * x_{t-4} + ... 
+	\end{aligned}\]
+ 
+\end{enumerate}
+
+\end{enumerate}
+
+
+
+
+
+
+
+\end{document}
