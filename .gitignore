@@ -7,5 +7,6 @@ venv
 *.csv
 *.aux
 *.log
+*.out
 *.synctex.gz
 
