@@ -1,0 +1,33 @@
+\documentclass[12pt,fleqn]{article}
+\usepackage{vkCourseML}
+%\usepackage{vkCourseML}
+\hypersetup{unicode=true}
+%\usepackage[a4paper]{geometry}
+\usepackage[hyphenbreaks]{breakurl}
+
+\interfootnotelinepenalty=10000
+\newcommand{\dx}[1]{\,\mathrm{d}#1} % маленький отступ и прямая d
+
+
+\graphicspath{{images/}{../images/}}
+\usepackage{subfiles}
+
+
+
+\begin{document}
+
+	\newpage
+	\tableofcontents
+	
+	\newpage
+	\subfile{chapters/01_intro}
+	
+	\newpage
+	\subfile{chapters/02_tables}
+
+	\newpage
+	\subfile{chapters/03_ETS}
+
+
+	
+\end{document}

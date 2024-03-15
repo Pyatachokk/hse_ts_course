@@ -1,0 +1,26 @@
+\babel@toc {russian}{}\relax 
+\contentsline {section}{\numberline {1}Определения}{2}{section.1}%
+\contentsline {section}{\numberline {2}Возможные постановки задач}{3}{section.2}%
+\contentsline {subsection}{\numberline {\S 2.1}Случай одного ряда}{3}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Прогнозирование}{3}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}Заполнение пропусков}{4}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}Декомпозиция}{4}{subsubsection.2.1.3}%
+\contentsline {subsubsection}{\numberline {2.1.4}Детекция разладки}{5}{subsubsection.2.1.4}%
+\contentsline {subsubsection}{\numberline {2.1.5}Агрегация и дезагрегация}{5}{subsubsection.2.1.5}%
+\contentsline {subsection}{\numberline {\S 2.2}Случай набора рядов}{5}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Задачи случая одного ряда}{5}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Классификация}{5}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Кластеризация}{5}{subsubsection.2.2.3}%
+\contentsline {subsubsection}{\numberline {2.2.4}Выявление связи между рядами}{5}{subsubsection.2.2.4}%
+\contentsline {section}{\numberline {3}Алгоритмы сглаживания}{5}{section.3}%
+\contentsline {subsection}{\numberline {\S 3.1}Moving average}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {\S 3.2}OLS}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {\S 3.3}LOESS}{5}{subsection.3.3}%
+\contentsline {section}{\numberline {4}STL}{5}{section.4}%
+\contentsline {section}{\numberline {5}Модели экспоненциального сглаживания}{6}{section.5}%
+\contentsline {subsection}{\numberline {\S 5.1}Простое экспоненциальное сглаживание}{6}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Модель коррекции ошибок}{7}{subsubsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {5.1.2}Взвешенное среднее}{7}{subsubsection.5.1.2}%
+\contentsline {subsubsection}{\numberline {5.1.3}Компонентный вид}{8}{subsubsection.5.1.3}%
+\contentsline {subsection}{\numberline {\S 5.2}Трендированные модели}{8}{subsection.5.2}%
+\contentsline {subsection}{\numberline {\S 5.3}Сглаживание с трендом}{9}{subsection.5.3}%
