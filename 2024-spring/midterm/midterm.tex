@@ -1,0 +1,175 @@
+% arara: xelatex
+\documentclass[12pt]{article}
+
+\usepackage{physics}
+
+
+\usepackage{tikz} % картинки в tikz
+\usepackage{microtype} % свешивание пунктуации
+
+\usepackage{array} % для столбцов фиксированной ширины
+
+\usepackage{indentfirst} % отступ в первом параграфе
+
+\usepackage{sectsty} % для центрирования названий частей
+\allsectionsfont{\centering}
+
+\usepackage{amsmath, amsfonts, amssymb} % куча стандартных математических плюшек
+
+\usepackage{comment}
+
+\usepackage[top=2cm, left=1.2cm, right=1.2cm, bottom=2cm]{geometry} % размер текста на странице
+
+\usepackage{lastpage} % чтобы узнать номер последней страницы
+
+\usepackage{enumitem} % дополнительные плюшки для списков
+%  например \begin{enumerate}[resume] позволяет продолжить нумерацию в новом списке
+\usepackage{caption}
+
+\usepackage{url} % to use \url{link to web}
+
+\usepackage{fancyhdr} % весёлые колонтитулы
+\pagestyle{fancy}
+\lhead{Анализ временных рядов}
+\chead{}
+\rhead{2024-04-06}
+\lfoot{}
+\cfoot{DON'T PANIC}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\usepackage{tcolorbox} % рамочки!
+
+\usepackage{todonotes} % для вставки в документ заметок о том, что осталось сделать
+% \todo{Здесь надо коэффициенты исправить}
+% \missingfigure{Здесь будет Последний день Помпеи}
+% \listoftodos - печатает все поставленные \todo'шки
+
+
+% более красивые таблицы
+\usepackage{booktabs}
+% заповеди из докупентации:
+% 1. Не используйте вертикальные линни
+% 2. Не используйте двойные линии
+% 3. Единицы измерения - в шапку таблицы
+% 4. Не сокращайте .1 вместо 0.1
+% 5. Повторяющееся значение повторяйте, а не говорите "то же"
+
+
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+
+% download "Linux Libertine" fonts:
+% http://www.linuxlibertine.org/index.php?id=91&L=1
+\setmainfont{Linux Libertine O} % or Helvetica, Arial, Cambria
+% why do we need \newfontfamily:
+% http://tex.stackexchange.com/questions/91507/
+\newfontfamily{\cyrillicfonttt}{Linux Libertine O}
+
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ} % для списков с русскими буквами
+\setlist[enumerate, 2]{label=\asbuk*),ref=\asbuk*}
+
+%% эконометрические сокращения
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Corr}{\mathbb{C}orr}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+% \DeclareMathOperator{\tr}{trace}
+\DeclareMathOperator{\card}{card}
+\DeclareMathOperator{\plim}{plim}
+\DeclareMathOperator{\pCorr}{\mathrm{p}\mathbb{C}\mathrm{orr}}
+
+
+\newcommand \hb{\hat{\beta}}
+\newcommand \hs{\hat{\sigma}}
+\newcommand \htheta{\hat{\theta}}
+\newcommand \s{\sigma}
+\newcommand \hy{\hat{y}}
+\newcommand \hY{\hat{Y}}
+\newcommand \e{\varepsilon}
+\newcommand \he{\hat{\e}}
+\newcommand \z{z}
+\newcommand \hVar{\widehat{\Var}}
+\newcommand \hCorr{\widehat{\Corr}}
+\newcommand \hCov{\widehat{\Cov}}
+\newcommand \cN{\mathcal{N}}
+\newcommand \RR{\mathbb{R}}
+\newcommand \NN{\mathbb{N}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cH}{\mathcal{H}}
+
+
+\begin{document}
+
+% Кратко: очно. 
+
+\begin{enumerate}
+
+\item Василиса Прекрасная подбрасывает игральный кубик и записывает результат броска как $y_1$.
+Далее при $t \geq 2$ она считает $y_t$ по формуле $y_t = y_{t-1} + 1$. 
+Величину $x_t$ Василиса определяет как остаток от деления $y_t$ на три. 
+
+\begin{enumerate}
+    \item Является ли процесс $(x_t)$ стационарным?
+    \item Постройте график теоретической автокорреляционной функции этого процесса. 
+\end{enumerate}
+
+
+\item Полугодовые наблюдения $(y_t)$ описываютя $ETS(ANA)$ моделью
+\[
+\begin{cases}
+    u_t \sim \cN(0; 4) \\
+    s_t = s_{t-2} + 0.1 u_t \\
+    \ell_t = \ell_{t-1} + 0.3 u_t \\
+    y_t = \ell_{t-1} + s_{t-2} + u_t \\
+\end{cases}    
+\]
+Постройте 95\% предиктивный интервал для $y_{102}$, если $s_{100} = 3$, $s_{99} = -2$, $\ell_{100} = 100$.
+
+    \item У стационарного процесса $(y_t)$ с математическим ожиданием $100$ автокорреляционная функция равна $\rho_k = 0.1^k$.
+  \begin{enumerate}
+    \item Найдите первые две частные автокорреляции, $\phi_{11}$ и $\phi_{22}$.
+    \item Запишите возможное разностное уравнение для данного процесса. 
+  \end{enumerate}
+  
+\item Рассмотрим разностное уравнение $y_t - 0.7y_{t-1} + 0.1y_{t-2} = u_t - 0.5u_{t-1}$, где величины $u_t$ независимы и нормально распределены $\cN(0;1)$.
+\begin{enumerate}
+    \item Сколько нестационарных и стационарных решений имеет это уравнение?
+    \item Запишите \textit{более простое} разностное уравнение с тем же множеством стационарных решений. 
+\end{enumerate}
+
+\item Часто говорят, что у рекуррентного уравнения $y_t = y_{t-1} + u_t$ не может быть стационарного решения $(y_t)$, 
+если последовательность $(u_t)$ — белый шум. 
+Из этого утверждения есть одно маленькое и (подсказка!) \textit{000чень простое} исключение. 
+
+Приведите явный пример последовательности  $(u_t)$ одинаково распределённых и независимых величин
+таких, что упомянутое уравнение будет иметь бесконечное количество стационарных решений. 
+
+
+\item Иван Дурак раздобыл длинный временной ряд и оценил параметры уравнения $y_t = \beta_1 + \beta_2 y_{t-1} + u_t$ 
+двумя способами.
+Во-первых, с помощью метода наименьших квадратов, $\hat\beta_1 = 0.3$, $\hat\beta_2 = 1.05$. 
+Во-вторых, с помощью метода максимального правдоподобия, $\hat\beta_1 = 362$, $\hat\beta_2 = 0.999$,
+предполагая стационарную $AR(1)$ модель, представимую в виде $MA(\infty)$.
+
+Затем Иван переставил наблюдения в обратном порядке и повторно оценил параметры двумя способами. 
+\begin{enumerate}
+    \item Какие примерно результаты дал метод наименьших квадратов?
+    \item Какие примерно результаты дал метод максимального правдоподобия?
+\end{enumerate}
+
+
+\end{enumerate}
+
+
+\end{document}
+
