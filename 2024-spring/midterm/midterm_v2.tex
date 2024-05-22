@@ -1,0 +1,175 @@
+% arara: xelatex
+\documentclass[12pt]{article}
+
+\usepackage{physics}
+
+
+\usepackage{tikz} % картинки в tikz
+\usepackage{microtype} % свешивание пунктуации
+
+\usepackage{array} % для столбцов фиксированной ширины
+
+\usepackage{indentfirst} % отступ в первом параграфе
+
+\usepackage{sectsty} % для центрирования названий частей
+\allsectionsfont{\centering}
+
+\usepackage{amsmath, amsfonts, amssymb} % куча стандартных математических плюшек
+
+\usepackage{comment}
+
+\usepackage[top=2cm, left=1.2cm, right=1.2cm, bottom=2cm]{geometry} % размер текста на странице
+
+\usepackage{lastpage} % чтобы узнать номер последней страницы
+
+\usepackage{enumitem} % дополнительные плюшки для списков
+%  например \begin{enumerate}[resume] позволяет продолжить нумерацию в новом списке
+\usepackage{caption}
+
+\usepackage{url} % to use \url{link to web}
+
+\usepackage{fancyhdr} % весёлые колонтитулы
+\pagestyle{fancy}
+\lhead{Анализ временных рядов}
+\chead{}
+\rhead{2024-05-17}
+\lfoot{}
+\cfoot{DON'T PANIC}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\usepackage{tcolorbox} % рамочки!
+
+\usepackage{todonotes} % для вставки в документ заметок о том, что осталось сделать
+% \todo{Здесь надо коэффициенты исправить}
+% \missingfigure{Здесь будет Последний день Помпеи}
+% \listoftodos - печатает все поставленные \todo'шки
+
+
+% более красивые таблицы
+\usepackage{booktabs}
+% заповеди из докупентации:
+% 1. Не используйте вертикальные линни
+% 2. Не используйте двойные линии
+% 3. Единицы измерения - в шапку таблицы
+% 4. Не сокращайте .1 вместо 0.1
+% 5. Повторяющееся значение повторяйте, а не говорите "то же"
+
+
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+
+% download "Linux Libertine" fonts:
+% http://www.linuxlibertine.org/index.php?id=91&L=1
+\setmainfont{Linux Libertine O} % or Helvetica, Arial, Cambria
+% why do we need \newfontfamily:
+% http://tex.stackexchange.com/questions/91507/
+\newfontfamily{\cyrillicfonttt}{Linux Libertine O}
+
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ} % для списков с русскими буквами
+\setlist[enumerate, 2]{label=\asbuk*),ref=\asbuk*}
+
+%% эконометрические сокращения
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Corr}{\mathbb{C}orr}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+% \DeclareMathOperator{\tr}{trace}
+\DeclareMathOperator{\card}{card}
+\DeclareMathOperator{\plim}{plim}
+\DeclareMathOperator{\pCorr}{\mathrm{p}\mathbb{C}\mathrm{orr}}
+
+
+\newcommand \hb{\hat{\beta}}
+\newcommand \hs{\hat{\sigma}}
+\newcommand \htheta{\hat{\theta}}
+\newcommand \s{\sigma}
+\newcommand \hy{\hat{y}}
+\newcommand \hY{\hat{Y}}
+\newcommand \e{\varepsilon}
+\newcommand \he{\hat{\e}}
+\newcommand \z{z}
+\newcommand \hVar{\widehat{\Var}}
+\newcommand \hCorr{\widehat{\Corr}}
+\newcommand \hCov{\widehat{\Cov}}
+\newcommand \cN{\mathcal{N}}
+\newcommand \RR{\mathbb{R}}
+\newcommand \NN{\mathbb{N}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cH}{\mathcal{H}}
+
+
+\begin{document}
+
+% Кратко: очно. 
+
+\begin{enumerate}
+
+\item У Василисы Прекрасной есть мешочек с монетками. 
+В стартовый день в мешочке находится случайное количество $y_0 \in [0;3]$ монеток. 
+Каждый день с номером $t\geq 1$ Василиса выполняет ровно одно действие.  
+Если в мешочке 0 монеток, то она добавляет одну монетку. 
+Если в мешочке 3 монетки, то она забирает одну монетку. 
+Если в мешочке 1 или 2 монетки, то она равновероятно добавляет или забирает одну монетку независимо от предыстории. 
+
+\begin{enumerate}
+    \item При каком распределении величины $y_0$ процесс $(y_t)$ будет слабо стационарным?
+    \item Будет ли построенный в пункте (а) процесс сильно стационарным?
+\end{enumerate}
+
+
+\item Полугодовые наблюдения $(y_t)$ описываютя $ETS(ANA)$ моделью
+\[
+\begin{cases}
+    u_t \sim \cN(0; 9) \\
+    s_t = s_{t-2} + 0.1 u_t \\
+    \ell_t = \ell_{t-1} + 0.4 u_t \\
+    y_t = \ell_{t-1} + s_{t-2} + u_t \\
+\end{cases}    
+\]
+Постройте 95\% предиктивный интервал для $y_{103}$, если $s_{100} = 3$, $s_{99} = -2$, $\ell_{100} = 100$.
+
+    \item Аль Капоне обнаружил, что начиная с некоторого лага все автокорреляции случайного процесса удовлетворяют соотношению 
+    $\rho_k = 0.3 \rho_{k - 1} - 0.02 \rho_{k - 2}$.
+  \begin{enumerate}
+    \item Приведите любой пример процесса с такой автокорреляционной функцией. 
+    \item Найдите первую частную автокорреляцию $\phi_{11}$ для процесса предложенного в пункте (а).
+  \end{enumerate}
+  
+\item Рассмотрим $MA(2)$ процесс $y_t = 5 + u_t + 3u_{t-1} + 2u_{t-2}$, где $(u_t)$ — белый шум. 
+
+\begin{enumerate}
+    \item Найдите автокорреляционную функцию процесса $(y_t)$.
+    \item Приведите пример $MA(2)$ процесса $(y'_t)$ и белого шума $(u'_t)$ таких, 
+    что $(y'_t)$ имеет такую же автокорреляционную функцию как $(y_t)$, но коэффициенты в формуле для $(y'_t)$
+    относительно $(u'_t)$ отличаются от коэффициентов в формуле для $(y_t)$ относительно $(u_t)$.
+\end{enumerate}
+
+
+\item Лус дель Кармен Ибаньес Карранса из города Трухильо разыскивает все $\alpha$, при которых процессы $(u_t)$ и $(w_t)$ 
+одновременно являются белыми шумами,
+\[
+w_t = \frac{1+\alpha L^{-1}}{1 + 0.5 L} u_t.
+\]
+\begin{enumerate}
+\item Помогите ей найти хотя бы одно искомое $\alpha$.
+\item Помогите ей найти второе $\alpha$. 
+\end{enumerate}
+
+
+% \item
+
+\end{enumerate}
+
+
+\end{document}
+
