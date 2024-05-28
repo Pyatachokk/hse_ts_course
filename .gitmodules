@@ -1,0 +1,3 @@
+[submodule "2024-spring/seminars/sem_17_classification/dtw"]
+	path = 2024-spring/seminars/sem_17_classification/dtw
+	url = git@github.com:markdregan/K-Nearest-Neighbors-with-Dynamic-Time-Warping.git
