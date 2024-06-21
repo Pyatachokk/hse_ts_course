@@ -1,0 +1,294 @@
+\documentclass[a4paper,14pt]{article}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{cmap}
+\usepackage{ragged2e}
+\usepackage{cmap}
+\usepackage{fancyhdr}
+\usepackage{lipsum}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{pgfplots}
+\usepackage{bbm}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{enumitem}
+
+\setstretch{1.5} 
+
+\pagestyle{fancy} % Use the fancy page style
+\fancyhf{} % Clear header and footer
+\rfoot{\thepage} % Page number at the bottom right
+
+\begin{document}
+\fontsize{12pt}{14pt}\selectfont
+
+\begin{center}
+	
+	\fontsize{18pt}{16pt}\selectfont
+	
+	\textbf{Решение КР-2020 по} \\
+	
+	\textbf{временным рядам}
+	
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{enumerate}
+
+\item Рассмотрим уравнение $y_t = 3 + 0.4y_{t−1} + u_t$ , где $u_t$ независимы и нормальны $\mathcal{N}$(0,9). Я не спрашиваю, есть ли у уравнения стационарное решение и сколько их. Скажу прямо: оно есть! Верь мне! И даже добавлю, что в нём $y_t$ представим в виде 
+$$ y_t =c+u_t +\alpha_1u_{t−1} +\alpha_2u_{t−2} +\dots$$
+\begin{enumerate}
+    \item Найди c и все $\alpha_k$.
+    \item Найди $\text{E}(y_t), \text{Var}(y_t)$ и первые два значения автокорреляционной функции.
+    
+    Дополнительно известно, что $y_{100} = 5$
+    \item Найди 95\%-й предиктивный интервал для $y_{101}$.
+    \item Найди 95\%-й долгосрочный предиктивный интервал для $y_{100+h}$, где h $\rightarrow \infty$. Зависит ли он от $y_{100}$?
+\end{enumerate}
+\textbf{Решение:}
+\begin{enumerate}
+	\item Рассмотрим временной ряд  $y_t = 3 + 0.4y_{t-1} + u_t$
+\begin{center}
+	
+	\begin{spacing}{1.5}
+		
+	$y_t = 3 + 0.4y_{t-1} + u_t$ \\
+	
+	$(1-0.4L)y_t = 3 + u_t$ \\
+	
+	$y_t = \frac{3+u_t}{1-0.4L}$\\
+	
+	$y_t = \frac{30}{6} + \sum_{i=0}^n 0.4^{i}L^{i}u_t = 5 + \sum_{i=1}^n 0.4^iu_{t-i}$
+
+	\end{spacing}
+	
+\end{center}
+Таким образом, получаем что $c = 5$, $\alpha_k = 0.4^k$
+	\item Для решения пункта b рассмотрим $y_t = 5 + \sum_{i=0}^n 0.4^iu_{t-i}$
+
+\begin{center}
+	
+	\begin{spacing}{1.5}
+		$\text{E}(y_t) = \text{E}(5+\sum_{i=0}^n 0.4^iu_{t-i}) = 5$\\
+		$\text{Var}(y_t) = \text{Var}(5+\sum_{i=0}^n 0.4^iu_{t-i}) = \sum_{i=0}^n 0.4^{2i}\text{Var}(u_t) = \sum_{i=0}^n 0.4^{2i}*9 = \frac{9}{0.84}$
+	\end{spacing}
+\end{center}
+Автокорреляционная функция $\rho_k = \frac{\gamma_k}{\gamma_0}$, где $\gamma_k = \text{cov}(y_t,y_{t+k})$
+\begin{center}
+	
+	\begin{spacing}{1.5}	
+	$\gamma_0 = \text{Var}(y_t) = \frac{9}{0.84}$\\
+	$\gamma_1 = \text{cov}(y_t,y_{t+1}) = \text{cov}(y_t, 3 + 0.4y_t+u_{t+1})=\text{cov}(y_t,u_{t+1}) + 0.4\text{Var}(y_t)= 0.4\text{Var}(y_t)$\\
+	\end{spacing}
+\end{center}
+Получаем $\rho_0,\rho_1$:
+\begin{center}
+	
+	\begin{spacing}{1.5}	
+		$\rho_0 = \frac{\text{Var}(y_t)}{\text{Var}(y_t)} = 1$\\
+		$\rho_1 = \frac{0.4\text{Var}(y_t)}{\text{Var}(y_t)} = 0.4$
+	\end{spacing}
+\end{center}
+	\item Найди 95\%-й предиктивный интервал для $y_{101}$.
+\begin{center}
+
+	\begin{spacing}{1.5}
+		$y_{101|100} = \text{E}(y_{100}*0.4+u_{101}+3 | \mathcal{F}_{100}) = 0.4y_{100}+3 = 5$\\
+		$\text{Var}(y_{101|100}) = \text{Var}(y_{100}*0.4+u_{101}+3|\mathcal{F}_{100}) = 9$
+	\end{spacing}
+\end{center}
+Тогда доверительный интервал принимает вид: $5 \pm 1.96*3$
+\item Найди 95\%-й долгосрочный предиктивный интервал для $y_{100+h}$, где h $\rightarrow \infty$. Зависит ли он от $y_{100}$?
+
+Рассмотрим для начала $y_{101|100},y_{102|100},y_{103|100}$:
+\begin{center}
+	\begin{spacing}{1.5}
+		$y_{101|100} = 0.4y_{100}+3$(знаем из предыдущего пункта)\\
+		$y_{102|100} = \text{E}(0.4y_{101|100} + u_{102}+3|\mathcal{F}_{100}) = 0.4^2y_{100} + 0.4*3 + 3$\\
+		$y_{103|100} = \text{E}(0.4y_{102|100} + u_{103}+3|\mathcal{F}_{100}) = 0.4(0.4^2y_{100}+0.4*3+3)+3$
+	\end{spacing}
+\end{center}
+Получаем, что формула для $y_{100+h|100}$ выглядит следующим образом:
+\begin{center}
+	\begin{spacing}{1.5}
+		$0.4^hy_{100} + 3(1+0.4^2+...0.4^{h-1}) = 5$\\
+	\end{spacing}
+\end{center}
+
+\end{enumerate}
+\item Временной ряд порождается MA(2) процессом $y_t = 3 + u_t + 0.5u_{t−1} + 0.2u_{t−2}$. Однако Винни-Пух строит регрессию $\hat{y_t} = \hat{\beta_1} + \hat{\beta_2}y_{t−1}$ с помощью МНК.
+\begin{enumerate}
+	\item Найди $\text{E}(y_t), \text{Var}(y_t), \text{Cov}(y_t, y_s)$.
+	\item Какие коэффициенты примерно получит Винни-Пух, если у него много наблюдений?
+\end{enumerate}
+\textbf{Решение:}
+\begin{enumerate}
+\item Найди $\text{E}(y_t), \text{Var}(y_t), \text{Cov}(y_t, y_s)$.
+\begin{center}
+	\begin{spacing}{1.5}
+		$\text{E}(y_t) = \text{E}(3+u_t+0.5u_{t-1}+0.2u_{t-2})=3$\\
+		$\text{Var}(y_t) = \text{Var}(3+u_t+0.5u_{t-1}+0.2u_{t-2}) = 0.5^2\sigma^2+0.2^2\sigma^2+\sigma^2=1.29\sigma^2$\\
+		$\text{Cov}(y_t,y_s) = \text{Cov}(3+u_t+0.5u_{t-1}+0.2u_{t-2},3+u_s+0.5u_{s-1}+0.2u_{s-2}) = \sigma^2\mathbbm{1}{[t=s]}+0.5\sigma^2\mathbbm{1}{[t=s-1]}+0.2\sigma^2\mathbbm{1}{[t=s-2]}+0.5\sigma^2\mathbbm{1}{[t-1=s]}+0.5^2\sigma^2\mathbbm{1}{[t=s]}+0.5*0.2\sigma^2\mathbbm{1}{[t-1=s-2]}+0.2\sigma^2\mathbbm{1}{[t-2=s]}+0.2*0.5\sigma^2\mathbbm{1}{[t-2=s-1]}$
+	\end{spacing}
+\end{center}
+\item Какие коэффициенты примерно получит Винни-Пух, если у него много наблюдений?
+
+Так как Винни-Пух строит регрессию с помощью МНК то верны следующие формулы:
+
+\begin{center}
+	\begin{spacing}{1.5}
+		$\hat{\beta_2} = \frac{\text{Cov}(y_t,y_{t-1})}{\text{Var}(y_t)} = \frac{0.5\sigma^2+0.2*0.5\sigma^2}{\sigma^2(1+0.5^2+0.2^2)} = \frac{0.6}{1.29} \approx 0.47$\\
+		$\hat{\beta_1} = E(y_t) - \hat{\beta_2}E(y_{t-1}) = 3(1-\hat{\beta_2}) = 3(1-0.47) \approx 1.69$
+
+	\end{spacing}
+\end{center}
+\end{enumerate}
+\item Рассмотрим процесс $y_t = u_1sin(5t) + u_2cos(5t)$, где $u_t$ — белый шум.
+\begin{enumerate}
+	\item Является ли данный процесс стационарным?
+	\item Можно ли представить данный процесс в виде MA($\infty$)? На всякий случай, чтобы не гуглить, я напомню, MA($\infty$) - процесс имеет вид:
+	$$y_t = c+\epsilon_t +\alpha_1\epsilon_{t−1} +\alpha_2\epsilon_{t−2} +\dots,$$
+	
+	где $\epsilon_t$ — белый шум. И да, обращу внимание, что шум $\epsilon_t$ не обязательно совпадает с шумом $u_t$
+
+\end{enumerate}
+\textbf{Решение:}
+\begin{enumerate}
+	\item Является ли данный процесс стационарным?
+\begin{center}
+	\begin{spacing}{1.5}
+		$\text{E}(y_t) = 0$\\
+		$\text{Cov}(y_t,y_s) = sin(5t)sin(5s)+cos(5t)cos(5s) = cos(5(t-s))$
+	\end{spacing}
+\end{center}
+
+Процесс является стационарным, так как выполнены условия.
+	\item Можно ли представить данный процесс в виде MA($\infty$)?
+
+Пользуясь теоремой Юла-Волкера:
+\begin{center}
+	\begin{spacing}{1.5}
+		$y_t = \alpha +\phi_{11}y_{t-1}+w_t$\\
+
+		$cov(y_{t-1}, y_t - \phi_{11} y_{t-1}) = \gamma_1 - \phi_{11} \gamma_0 = 0 \ |\ : \gamma_0$ \\
+		
+		$ \rho_1 - \phi_{11} = 0 \Rightarrow \phi_{11} = \rho_1 = \cos(5) $
+		
+	\end{spacing}
+ \end{center}
+
+Получаем, что наш исходный процесс представим в виде: $y_t = \alpha + \cos(5)y_{t-1}+w_t$
+\begin{center}
+	\begin{spacing}{1.5}
+		$(1-\cos(5)L)y_t = \alpha + w_t$\\
+		$y_t = \frac{\alpha}{1-\cos(5)} + \frac{w_t}{1-\cos(5)L} = \frac{\alpha}{1-\cos(5)} + \sum_{i=0}^n \cos(5)^{i}L^{i}w_t =  \frac{\alpha}{1-\cos(5)} + \sum_{i=0}^n \cos(5)^{i}w_{t-i} $
+	\end{spacing}
+\end{center}
+
+Так как $\cos(5)\approx 0.28$, то наш процесс представим в виде MA($\infty$) 
+
+\end{enumerate}
+\item У стационарного процесса $y_t$ первые две обычные корреляции равны $\rho_1 = 0.5, \rho_2 = 0.2$, а ожидание равно $\text{E}(y_t) = 20$. Известно, что $y_{100} = 25, y_{99} = 22$. Найди наилучший точечный прогноз для $y_{101}$. Псccст, парень! Это была задача про частные корреляции!
+\textbf{Решение:}
+Воспользуемся теоремой Юла-Волкера(так как процесс стационарен, то теоремой можно пользоваться):
+$y_t = \alpha +\phi_{21}y_{t-1}+\phi_{22}y_{t-2}+w_t$
+
+\begin{cases}
+$cov(y_t-\alpha-\phi_{21}y_{t-1}-\phi_{22}y_{t-2},y_{t-1})=0$\\
+$cov(y_t-\alpha-\phi_{21}y_{t-1}-\phi_{22}y_{t-2},y_{t-1})=0$
+\end{cases}\rightarrow
+\begin{cases}
+$\varphi(1)-\phi_{21}\varphi(0)-\phi_{22}\varphi(1)=0$\\
+$\varphi(2)-\phi_{21}\varphi(1)-\phi_{22}\varphi(0) = 0$
+\end{cases}
+
+Делим на \varphi(0):
+\begin{cases}
+$\rho_1-\phi_{21}-\phi_{22}\rho_1=0$\\
+$\rho_2-\phi_{21}\rho_1-\phi_{22}=0$
+\end{cases}\rightarrow
+\left[
+\begin{array}{ccc}
+$\phi_{21} = \frac{\rho_1-\rho_1\rho_2}{1-\rho_1^2}\approx0.53$\\
+$\phi_{22} = \rho_2-\rho_1\frac{\rho_1-\rho_1\rho_2}{1-\rho_1^2}\approx -0.07$
+\end{array}
+
+Получаем, что $y_t = \alpha +0.53y_{t-1}-0.07y_{t-2}+w_t$
+
+Так как процесс стационарен, то $\forall t: \text{E}(y_t) = const$. Отсюда найдем $\alpha$:
+
+\begin{center}
+	\begin{spacing}{1.5}
+		$\text{E}(y_t) = \alpha+0.53\text{E}(y_t)-0.07\text{E}(y_t)$\\
+		$\alpha = 10.8$\\
+		Теперь найдем прогноз:\\
+		$y_{101|100} = E(10.8+0.53y_{100}-0.07y_{99}+w_{101}|\mathcal{F}_{100})=10.8+0.53*25-0.07*22 = 22.51$\\
+	\end{spacing}
+\end{center}
+\item Вспомни $ETS(AAN)$ модель, а я тебе даже уравнения напишу:
+\begin{equation}
+\begin{cases}
+y_t = \ell_{t-1} + b_{t-1} + u_t \\
+\ell_t = \ell_{t-1} + b_{t-1} + \alpha u_t \\
+b_t = b_{t-1} + \beta u_t \\
+u_t \sim \mathcal{N}(0; \sigma^2)
+\end{cases}
+\end{equation}
+\begin{enumerate}[label=\alph*)]
+    \item Ты вчера чатик читал? Помнишь там вопрос был? Ага! Докажи, что ни при каких $l_0$ и $b_0$ этот процесс не будет стационарным. Или опровергни и приведи пример, при каких будет. 
+    
+    Константы $\alpha$, $\beta$ лежат в интервале (0;1).
+    \item При $l_{100} = 20$, $b_{100} = 2, \alpha = 0.2, \beta = 0.3, \sigma^2 = 16$ построй интервальный прогноз на один и два шага вперёд.
+\end{enumerate}
+\textbf{Решение:}
+\begin{enumerate}[label=\alph*)]
+	\item Ты вчера чатик читал? Помнишь там вопрос был? Ага! Докажи, что ни при каких $l_0$ и $b_0$ этот процесс не будет стационарным. Или опровергни и приведи пример, при каких будет. 
+
+Так как мы имеем ETS(AAN), то есть ряд $y_t$ с аддитивным трендом, то процесс не будет стационарным ни для каких $l_0,b_0$, так как $\mathbb{E}(y_t) = f(t) \neq const$.
+	\item При $l_{100} = 20$, $b_{100} = 2, \alpha = 0.2, \beta = 0.3, \sigma^2 = 16$ построй интервальный прогноз на один и два шага вперёд.
+	\begin{spacing}{1.5}
+		$y_{101|100} = E(l_{100} + b_{100} + u_{101}|\mathcal{F}_{100}) = l_{100}+b_{100} = 22$\\
+		$y_{102|100} = E(l_{101}+b_{101}+u_{102}|\mathcal{F}_{100}) = E(l_{100}+b_{100}+\alpha u_{101} + b_{100}+\beta u_{101} + u_{102}) = l_{100}+2b_{100} = 24$
+	\end{spacing}
+\end{enumerate}
+\item Величины $x_t$ равновероятно равны 0 или 1, а величины $u_t$ нормальны $\mathcal{N}$(0, 1). Все упомянутые величины независимы. Рассмотрим процесс $z_t = x^2_t(1 − x_{t−1})u_t$.
+\begin{enumerate}[label=\alph*)]
+\item Найди $Cov(z_t, z_s)$. Стационарен ли процесс $z_t$?
+\item Скажу тебе по секрету, что $z_{100} = 2.3$. Построй точечный и 95\%-й интервальный прогноз на один и два шага вперёд. Чем интервальные прогнозы в этой задаче особенные?
+\end{enumerate}
+\textbf{Решение:}
+\begin{enumerate}[label=\alph*)]
+\item Найди $Cov(z_t, z_s)$. Стационарен ли процесс $z_t$?
+	\begin{spacing}{1.5}
+		$\mathbb{E}(1-x_{t-1}) = 1 - \frac{1}{2} = \frac{1}{2}$\\
+		$\mathbb{E}(x^2_t) = \frac{1}{2}, \mathbb{E}(u_t) = 0$\\
+		$cov(z_t,z_s) = cov(x^2_t(1-x_{t-1})u_t,x^2_s(1-x_{s-1})u_s) = \mathbb{E}(x^2_t(1-x_{t-1})u_tx^2_s(1-x_{s-1})u_s) - \mathbb{E}(x^2_t(1-x_{t-1})u_t)\mathbb{E}(x^2_s(1-x_{s-1})u_s) = |\texttt{так как все случайные величины независимы}| = 0$\\
+		$\mathbb{E}(z_t) = \mathbb{E}(x^2_t(1-x_{t-1})u_t) = 0$
+	\end{spacing}
+Так как $\mathbb{E}(z_t) = const, cov(z_t,z_s) = (t-s) - (t-s) = f(t-s)$, то процесс является стационарным.
+\item Скажу тебе по секрету, что $z_{100} = 2.3$. Построй точечный и 95\%-й интервальный прогноз на один и два шага вперёд. Чем интервальные прогнозы в этой задаче особенные?
+
+Рассмотрим значение $z_{100} = 2.3$. $z_{100}\neq 0$ только в случае, если $x_{100} = 1, x_{99} = 0$.
+	\begin{spacing}{1.5}
+		$z_{101|100} = \mathbb{E}(x^2_{101}(1-x_{100})u_{101}|\mathcal{F}_{100}) = |\texttt{Так как $z_{100} = 2.3$, а значит $x_{100} = 1$}| = 0$\\
+		$z_{102|100} = \mathbb{E}(x^2_{102}(1-x_{101})u_{102}|\mathcal{F}_{100}) = |\texttt{Пользуясь независимостью}| = 0$
+	\end{spacing}
+Теперь рассмотрим доверительные интервалы:
+	\begin{spacing}{1.5}
+		$\hat{z}_{101|100} \pm 1.96*\hat{Var}(z_{101|100})$\\
+		$Var(z_{101|100}) = Var(x^2_{101}(1-x_{100})u_{101}|\mathcal{F}_{100}) = |\texttt{Так как $x_{100}$ известно}| = (1-x_{100})^2Var(x^2_{101}u_{101}|\mathcal{F}_{100}) = 0$\\
+		Итоговый доверительный интервал:\\
+		$0 \pm 1.96*0$\\
+		$\hat{z}_{102|100} \pm 1.96*\hat{Var}(z_{102|100})$\\
+		$Var(z_{102|100}) = Var(x^2_{102}(1-x_{101})u_{101}|\mathcal{F}_{100}) = \mathbb{E}(x^4_{102}(1-x_{101})^2u^2_{101}|\mathcal{F}_{100}) - \mathbb{E}^2(x^2_{102}(1-x_{101})u_{101}|\mathcal{F}_{100}) = \frac{1}{4} - \frac{1}{8} = \frac{1}{8}$
+		Итоговый доверительный интервал:
+		$0 \pm 1.96*\frac{1}{8}$
+	\end{spacing}
+Особенность интервальных прогнозов в данной задаче состоит в том, что прогноз на следующий период сильно зависит от того, какое принимает значение $z_t$(0 или другое число), так как в таком случае можно однозначно определить значение $x_t$ в $z_{t+1}$
+\end{enumerate}
+\end{enumerate}
+\end{document}
