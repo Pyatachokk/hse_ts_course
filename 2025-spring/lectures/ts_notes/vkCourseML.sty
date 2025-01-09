@@ -478,3 +478,59 @@
         {#2}
     \right)
 }
+
+
+
+\linespread{1.3} %интервал
+\renewcommand{\familydefault}{\rmdefault}
+
+\usepackage[rightcaption]{sidecap}
+
+
+
+\usepackage{hyperref}
+
+
+%chapter style programming
+\usepackage{fancyhdr}
+\addto\captionsrussian{%
+	\renewcommand\chaptername{Лекция}}
+\usepackage{color}
+\definecolor{RoyalBlue}{RGB}{45,16, 157}
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+{\normalsize \huge  \color{black}}%
+{\flushright\Large \color{RoyalBlue}%
+	\MakeUppercase{\chaptertitlename}\hspace{1ex}%
+	{\fontfamily{mdugm}\fontsize{40}{40}\selectfont\thechapter}}%
+{10 pt}%
+{\bfseries \huge}%
+
+%more chapter style programming
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
+\makeatother
+\titlespacing*{\chapter}{0pt}{-50pt}{40pt}
+
+
+\usepackage{tikz}
+
+
+%blank spaces
+\usepackage{geometry}
+\geometry{left=2cm}
+\geometry{right=2cm}
+\geometry{top=2cm}
+\geometry{bottom=2cm}
+
+
+
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{lemma}[theorem]{Лeммa}
+\newtheorem{proposition}[theorem]{Утверждение}
+\newtheorem{corollary}[theorem]{Следствие}
+\newtheorem{definition}{Определение}[section]
+\newtheorem{example}{Пример}[chapter]
+\newtheorem{exercise}{Упражнение}[section]
+\newtheorem{remark}{Замечание}[section]
