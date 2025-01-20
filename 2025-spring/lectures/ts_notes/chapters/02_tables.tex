@@ -45,9 +45,9 @@ $$
 $$
 \hat{y}_{t+h} = \hat{f}(\tilde{y}_{t+h-1}, \ldots, \tilde{y}_{t+h-k+1}, \tilde{x}_{t+h}, \ldots, \tilde{x}_{t+h-p+1}), t \in \overline{1, T}
 $$ 
-$$\tilde{z}_t = \begin{cases}
-	 z_t & если $t<=T$  \\
-	\hat{z}_t & если $t>T$
+$$\tilde{y}_t = \begin{cases}
+	 y_t & если $t<=T$  \\
+	\hat{y}_t & если $t>T$
 \end{cases}
 $$
 
@@ -125,9 +125,9 @@ $$
 $$
 \hat{y}_{t+h} = \hat{f}_h(\tilde{y}_{t+h-1}, \ldots, \tilde{y}_{t-k+1}, x_{t}, \ldots, x_{t-p+1}), t \in \overline{1, T}
 $$ 
-$$\tilde{z}_t = \begin{cases}
-	z_t & если $t<=T$  \\
-	\hat{z}_t & если $t>T$
+$$\tilde{y}_t = \begin{cases}
+	y_t & если $t<=T$  \\
+	\hat{y}_t & если $t>T$
 \end{cases}
 $$
 
