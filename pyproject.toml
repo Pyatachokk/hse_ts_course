@@ -6,14 +6,17 @@ authors = ["Matvei Zekhov <zehov1@mail.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-numpy = "^2.2.1"
+python = ">=3.10"
+statsforecast = "^2.0.0"
 pandas = "^2.2.3"
+numpy = "2.1"
 ipykernel = "^6.29.5"
-plotly = "^5.24.1"
-matplotlib = "^3.10.0"
 statsmodels = "^0.14.4"
+matplotlib = "^3.10.0"
+moepy = "^1.1.4"
 
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
