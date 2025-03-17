@@ -21,6 +21,7 @@ plotly = "^6.0.0"
 nbformat = "^5.10.4"
 yfinance = "^0.2.52"
 openpyxl = "^3.1.5"
+dieboldmariano = "^1.1.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
