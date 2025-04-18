@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[10pt]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -90,7 +90,11 @@ $$y_t - 0.5y_{t-1} + 0.06y_{t-2} = 10 + \varepsilon_t - 0.9\varepsilon_{t-1} + 0
     то его стабильное решение будет стационарным.\\
     Таким образом, имеем бесконечно много нестационарных решений, 1 стационарное и 1 стабильное.
 
-    \item $y_t = \mu + \varepsilon_t - 0.4\varepsilon_{t-1} \Rightarrow y_t$ -- AR(0) и MA(1) процесс, то есть ARMA(0, 1).
+    \item $y_t = \mu + \varepsilon_t - 0.4\varepsilon_{t-1} \Rightarrow y_t$ -- AR(0) и MA(1) процесс, то есть ARMA(0, 1).\\
+    Процесс нельзя определить как ARMA(2, 3), используя начальное соотношение,
+    так как в определении ARMA-процесса через равенство вида $A(L)(y_t - \mu) = B(L)\varepsilon_t$
+    полиномы $A(L)$ и $B(L)$ полагаются несократимыми, что не верно для начального уравнения.
+
     \item $ACF(k) = \rho_k$, положим $\gamma_k = cov(y_t, y_{t-k})$, тогда $\rho_k = \frac{\gamma_k}{\gamma_0}$.
     \begin{itemize}
     \item $\gamma_0 = cov(\mu + \varepsilon_t - 0.4\varepsilon_{t-1}, \mu + \varepsilon_t - 0.4\varepsilon_{t-1}) =
@@ -192,6 +196,9 @@ $$y_t - 0.5y_{t-1} + 0.06y_{t-2} = 10 + \varepsilon_t - 0.9\varepsilon_{t-1} + 0
         $$\varphi_{kk} = \frac{-(-\theta)^k}{1 + \theta^2 + \hdots + \theta^{2k}}$$
         где $\theta$ -- параметр из MA(1) процесса $y_t - \mu = \varepsilon_t + \theta \varepsilon_{t-1}$, откуда
         $$\varphi_{kk} = \frac{-(-(-0.4))^k}{\frac{1 - (-0.4)^{2k+2}}{1 - (-0.4)^2}} = \frac{-0.4^k\cdot 0.84}{1 - 0.4^{2k+2}}$$
+
+        \textit{На контрольной было достаточно найти PACF для первых 2 шагов;
+        рассуждения полностью повторяют вывод общей формулы и опираются на теорему Юла-Волкера.}
 
         \url{https://stats.stackexchange.com/questions/140371/pacf-for-ma1-process}
     \end{itemize}
@@ -325,8 +332,8 @@ $$
 \begin{enumerate}
     \item  Ортогональные IRF устраняют корреляцию между шоками, что позволяет анализировать реакцию системы на чистый шок одной переменной.
     Обычные IRF не устраняют корреляцию ошибок, поэтому шок в одной переменной может включать влияние других переменных.
-    \item  Обычные IRF показывают реакцию переменных на единичный шок во времени. Кумулятивный IRF отображает накопленный эффект от шока, то есть сумму
-    всех последующих реакций системы.
+    \item  Обычные IRF показывают чистую реакцию на шок через $k$ шагов. Кумулятивные IRF отображают накопленный эффект от шока, то
+    есть суммарный эффект по всем периодам.
     \item Тест Гранжера для модели имеет вид:
     $$H_0: \phi_{12}^{(1)} = \phi_{(12)}^{(2)} = 0 \text{ против } H_1: \phi_{12}^{(1)}\not=0\lor\phi_{12}^{(2)}\not=0$$
 \end{enumerate}
@@ -353,7 +360,13 @@ $$y_t = \beta_0 + \beta_1x_t + \varepsilon_t, \; \varepsilon_t = \rho\varepsilon
     Устремляя $k\rightarrow\infty$ и используя $|\rho|<1$, получаем, что $\sum\limits_{k=0}^{\infty}\rho^k u_{t-k} \sim\mathcal{N}(0, \frac{\sigma_u^2}{1 - \rho^2})$.
     Отметим, что $\mathbb{E}\varepsilon_{t-k} = 0$ и $\mathbb{V}ar(\varepsilon_{t-k})=const$, откуда $\rho^k\varepsilon_{t-k}\xrightarrow{a.s.} 0$. Таким образом,
     переходя к пределу, в исходном равенстве для $\varepsilon_{t}$ получаем, что $\varepsilon_{t}\sim\sum\limits_{k=0}^{\infty}\rho^k u_{t-k}
-    \sim\mathcal{N}(0, \frac{\sigma_u^2}{1 - \rho^2})$, откуда и $\varepsilon_1\sim\mathcal{N}(0, \frac{\sigma_u^2}{1 - \rho^2})$.
+    \sim\mathcal{N}(0, \frac{\sigma_u^2}{1 - \rho^2})$, откуда и $\varepsilon_1\sim\mathcal{N}(0, \frac{\sigma_u^2}{1 - \rho^2})$.\\
+    \textit{Заметим, что характеристики распределения можно найти из стационарности процесса.
+    Нормальность распределения $\varepsilon_t$ будет следовать из рассуждений, повторяющих предельный переход, и вида $u_t$, далее:
+    $$\mathbb{E}\varepsilon_t = \mathbb{E}(\rho\varepsilon_{t-1} + u_t) = \rho\mathbb{E}\varepsilon_{t-1} + 0 \Rightarrow \mu = \rho\mu, |\rho|<1\Rightarrow \mu=0$$
+    $$\mathbb{V}\varepsilon_t = \mathbb{V}(\rho\varepsilon_{t-1} + u_t) = \rho^2\mathbb{V}\varepsilon_{t-1} + \sigma_u^2\Rightarrow \sigma^2 =
+    \rho^2\sigma^2 + \sigma_u^2\Rightarrow \sigma^2 = \frac{\sigma_u^2}{1 - \rho^2}$$
+    }
 
     \item $y_1 = \beta_0 + \beta_1x_1 + \varepsilon_1 \Rightarrow$ нам известно всё, кроме, $\varepsilon_1$, а про него знаем распределение, откуда
     $p(y_1 | x_1) \sim \mathcal{N}(\beta_0 + \beta_1x_1; \frac{\sigma_u^2}{1 - \rho^2})$.
