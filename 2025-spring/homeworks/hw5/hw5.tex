@@ -1,0 +1,232 @@
+% arara: xelatex
+\documentclass[12pt]{article}
+
+% \usepackage{physics}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\usepackage{tikzducks}
+
+\usepackage{tikz} % картинки в tikz
+\usetikzlibrary{shapes, arrows, positioning}
+\usepackage{microtype} % свешивание пунктуации
+
+\usepackage{array} % для столбцов фиксированной ширины
+
+\usepackage{indentfirst} % отступ в первом параграфе
+
+\usepackage{sectsty} % для центрирования названий частей
+\allsectionsfont{\centering}
+
+\usepackage{amsmath, amsfonts, amssymb} % куча стандартных математических плюшек
+
+\usepackage{comment}
+
+\usepackage[top=2cm, left=1.2cm, right=1.2cm, bottom=2cm]{geometry} % размер текста на странице
+
+\usepackage{lastpage} % чтобы узнать номер последней страницы
+
+\usepackage{enumitem} % дополнительные плюшки для списков
+%  например \begin{enumerate}[resume] позволяет продолжить нумерацию в новом списке
+\usepackage{caption}
+
+\usepackage{url} % to use \url{link to web}
+
+
+\newcommand{\smallduck}{\begin{tikzpicture}[scale=0.3]
+    \duck[
+        cape=black,
+        hat=black,
+        mask=black
+    ]
+    \end{tikzpicture}}
+
+\usepackage{fancyhdr} % весёлые колонтитулы
+\pagestyle{fancy}
+\lhead{Домашний праздник}
+\chead{}
+\rhead{}
+\lfoot{}
+\cfoot{}
+\rfoot{}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\usepackage{tcolorbox} % рамочки!
+
+\usepackage{todonotes} % для вставки в документ заметок о том, что осталось сделать
+% \todo{Здесь надо коэффициенты исправить}
+% \missingfigure{Здесь будет Последний день Помпеи}
+% \listoftodos - печатает все поставленные \todo'шки
+
+
+% более красивые таблицы
+\usepackage{booktabs}
+% заповеди из докупентации:
+% 1. Не используйте вертикальные линни
+% 2. Не используйте двойные линии
+% 3. Единицы измерения - в шапку таблицы
+% 4. Не сокращайте .1 вместо 0.1
+% 5. Повторяющееся значение повторяйте, а не говорите "то же"
+
+
+\setcounter{MaxMatrixCols}{20}
+% by crazy default pmatrix supports only 10 cols :)
+
+
+\usepackage{fontspec}
+\usepackage{libertine}
+\usepackage{polyglossia}
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+
+% download "Linux Libertine" fonts:
+% http://www.linuxlibertine.org/index.php?id=91&L=1
+% \setmainfont{Linux Libertine O} % or Helvetica, Arial, Cambria
+% why do we need \newfontfamily:
+% http://tex.stackexchange.com/questions/91507/
+% \newfontfamily{\cyrillicfonttt}{Linux Libertine O}
+
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ} % для списков с русскими буквами
+% \setlist[enumerate, 2]{label=\asbuk*),ref=\asbuk*}
+
+%% эконометрические сокращения
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Corr}{\mathbb{C}orr}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+\DeclareMathOperator{\col}{col}
+\DeclareMathOperator{\row}{row}
+
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+% \DeclareMathOperator{\tr}{trace}
+\DeclareMathOperator{\card}{card}
+
+\DeclareMathOperator{\Convex}{Convex}
+\DeclareMathOperator{\plim}{plim}
+
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cF}{\mathcal{F}}
+
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\hb}{\hat{\beta}}
+\newcommand{\dPois}{\mathrm{Pois}}
+
+
+\newcommand{\dExpo}{\mathrm{Expo}}
+
+
+
+
+\begin{document}
+
+\begin{enumerate}
+    \item Все величины $(u_t)$, $v(0)$, $v(1)$, $v(2)$ независимы, одинаково распределены и равновероятно принимают значения $+1$ и $(-1)$.
+    Рассмотрим процесс 
+    \[
+    \begin{cases} 
+        r_t = t \text{ mod } 3, \text{ (остаток от деления }t \text{ на 3)} \\
+        y_t = 100 v(r_t) + u_t + 0.5u_{t-1}.   
+    \end{cases}
+    \]
+    \begin{enumerate}
+        \item {[2]} Нарисуйте пару «типичных» траекторий процесса $(y_t)$. 
+        \item {[3]} Является ли процесс $(y_t)$ слабо стационарным?
+        \item {[3]} Представим ли данный процесс в виде $MA(\infty)$ процесса?
+        \item {[2]} Правда ли, что выборочная ковариации сходится к теоретической,
+        \[
+        \plim \sum_{t=2}^T y_t y_{t-1} / T = \Cov(y_1, y_2)?
+        \]
+    \end{enumerate}
+
+    \item Динамика количества ежей в лесу $(y_t)$ описывается полугодовым $ETS(AAdA)$ процессом:
+    \[
+    \begin{cases}
+        u_t \sim \cN(0, 9) \\
+        s_t = s_{t-2} + 0.1 u_t \\
+        b_t = 0.9b_{t-1} + 0.1 u_t \\
+        \ell_t = \ell_{t-1} + 0.9b_{t-1} + 0.2 u_t \\
+        y_t = \ell_{t-1} + 0.9b_{t-1} + s_{t-2} + u_t \\
+    \end{cases}    
+    \]
+    Известно, что $s_{100} = 2$, $s_{99} = -3$, $\ell_{100} = 200$, $b_{100} = 1$.
+    \begin{enumerate}
+      \item {[6]} Постройте 95\%-й предиктивный интервал количества ежей $y_{102}$ через год.
+      \item {[4]} Запишите эту модель в виде $A(L) y_t = B(L) u_t$, где $A(L)$ и $B(L)$ взаимно-простые лаговые многочлены.
+    \end{enumerate}
+  
+    \item Величины $W_1$, $W_2$ независимы и имеют функцию плотности $f(w) = 2w$ на отрезке $[0, 1]$.
+    Определим $X_1 = \min \{W_1, W_2\}$ и $X_2 = \max \{W_1, W_2\}$.
+    \begin{enumerate}
+        \item {[3]} Найдите функцию распределения $F_1$ величины $X_1$ и функцию распределения $F_2$ величины $X_2$.
+        \item {[4]} Найдите копулу $C(u_1, u_2)$ для пары $(X_1, X_2)$.
+        \item {[3]} Найдите условную вероятность $\P(F_1(X_1) \leq u_1 \mid F_2(X_2) = u_2)$.
+    \end{enumerate}
+
+
+    \newpage
+
+    \item Рассмотрим разностное уравнение $y_t = 10 + 0.5 y_{t-1} + u_{t} + 2 u_{t-1}$, где $(u_t)$ — белый шум. 
+    \begin{enumerate}
+        \item {[2]} Сколько нестационарных решений у этого уравнения? Привидете в качестве примера хотя бы одно нестационарное решение. 
+    \end{enumerate}
+    Винни-Пух использует в качестве модели для численности пчёл единственное стационарное решение этого уравнения. 
+    \begin{enumerate}[resume]
+        \item {[3]} Выпишите явно решение, которое использует Винни-Пух. 
+        \item {[3]} Сможет ли Винни-Пух восстановить $u_0$, если он знает весь бесконечный ряд $y_0$, $y_{-1}$, $y_{-2}$, \dots?
+        \item {[2]} Предложите уравнение, единственное стационарное решение которого имеет ожидание и автоковариационную функцию идентичные ожиданию и автоковариационной функции исходного процесса,
+        но при этом по прошлым значениям нового процесса можно восстановить ненаблюдаемое значение случайного шока. 
+    \end{enumerate}
+
+    \item   Строго стационарный процесс $(u_t)$ описывается $ARCH(1)$ моделью $\sigma^2_t = 3 + 0.2 u_{t-1}^2$, где 
+    $u_t = \sigma_t \nu_t$ и шумы $\nu_t \sim \cN(0, 1)$ независимы.
+    \begin{enumerate}
+        \item {[3]} Найдите $\E(u_t)$, $\Var(u_t)$.
+        \item {[5]} Постройтие 95\%-й предиктивный интервал для $u_{101}$ если $u_{100} = -1$.
+        \item {[2]} Верно ли, что условное распределение $u_{102}$ при $u_{100} = -1$ является нормальным?
+    \end{enumerate}
+
+    \item Рассмотрим двумерный слабо стационарный $VAR(2)$ процесс $y_t = (y_{1t}, y_{2t})$, являющийся решением уравнения
+    \[
+    y_t = \begin{pmatrix}
+    4 \\ 
+    11 \\    
+    \end{pmatrix} + 
+    \begin{pmatrix}
+      0.2  & 0.1 \\
+      0  & 0.2 \\
+    \end{pmatrix} y_{t-1} + 
+    \begin{pmatrix}
+      0.2  & 0 \\
+      0.1  & 0.2 \\
+    \end{pmatrix} y_{t-2} + u_t,
+    \]
+    где двумерный белый шум $u_t = (u_{1t}, u_{2t})$ c $\E(u_t) = 0$ и $\Var(u_t) = \begin{pmatrix}
+        4 & 0 \\
+        0 & 9 \\
+    \end{pmatrix}$.
+    \begin{enumerate}
+        \item {[2]} Найдите $\E(y_t)$.
+        \item {[4]} Найдите первые два значения кросс-ковариационной функции $\gamma_{12}(k) = \Cov(y_{1,t}, y_{2, t-k})$: $\gamma_{12}(1)$ и $\gamma_{12}(2)$.
+        \item {[4]} Перепишите данный процесс в виде $VAR(1)$ процесса более высокой размерности, $w_t = c + A w_{t-1} + v_t$.
+        Явно укажите матрицу $A$, вектор $c$, выразите вектор $w_t$ через вектор $y_t$, выпишите ковариационную матрицу белого шума $\Var(v_t)$.
+    \end{enumerate}
+
+\end{enumerate}
+
+
+\end{document}
+
