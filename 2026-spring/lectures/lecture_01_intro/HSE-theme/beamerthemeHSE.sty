@@ -1,0 +1,134 @@
+
+% Официальный шаблон презентации НИУ ВШЭ в beamer (LaTeX)
+% Версия 2.0
+% Язык — русский
+% Автор шаблона - Данил Фёдоровых (fedorovykh@gmail.com)
+
+%%% Для корректной работы шаблона необходима 
+%%% установка в систему бесплатного шрифта HSE Sans
+%%% https://www.hse.ru/info/brandbook/#font
+
+
+%%% Loading packages useful for typesetting our slides
+\usepackage{wrapfig}
+\usepackage{xcolor}
+\usepackage{etoolbox}
+\usepackage{hyperref} 
+\urlstyle{same} 
+
+\ProvidesPackage{beamerthemeHSE}[2021/01/17] % Defines the theme HSE
+
+\usefonttheme{default} % Font theme
+
+\setbeamertemplate{navigation symbols}{}    % Comment out to show nav. bar
+\setbeamertemplate{itemize items}[circle]   % Style of bullet points
+%\setbeamertemplate{theorems}[numbered]     % Number objects such as theorems and definitions
+
+
+\definecolor{HSEblue}{cmyk}{1,0.8,0,0.4}        % Pantone 287
+\definecolor{HSElightblue}{cmyk}{0.95,0.75,0,0} % Pantone 2736
+\definecolor{HSEgreen}{cmyk}{0.8,0.1,0.75,0} 
+\definecolor{HSEred}{cmyk}{0.2,1,0.6,0.05} 
+\definecolor{HSEorange}{cmyk}{0,0.7,1,0} 
+\setbeamercolor{WhiteOnBlue}{bg=HSEblue,fg=white} % White on Pantone 287
+\setbeamercolor{BlueOnWhite}{fg=HSEblue,bg=white} % Pantone 287 on White
+
+\usepackage{hyperref}
+\hypersetup{
+    unicode=true,          % non-Latin characters in Acrobat’s bookmarks
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=HSEblue,       % color of internal links (change box color with linkbordercolor)
+    citecolor=HSEblue,     % color of links to bibliography
+    filecolor=HSEblue,     % color of file links
+    urlcolor=HSEblue       % color of external links
+}
+
+%%% Set color of different objects (see Beamer User Guide for more info)
+\usecolortheme[named=HSEblue]{structure}
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{frametitle}{fg=HSEblue}
+\setbeamercolor{date}{fg=HSEblue}
+\setbeamercolor{institute}{fg=HSEblue}
+\setbeamercolor{author}{fg=HSEblue}
+\setbeamercolor{headline}{bg=HSEblue}
+\setbeamercolor{alerted text}{fg=HSEred}
+\setbeamercolor{itemize item}{fg=HSEblue}
+\setbeamercolor{itemize subitem}{fg=HSEblue}
+\setbeamercolor{itemize subsubitem}{fg=HSEblue}
+\setbeamercolor{block title example}{fg=HSEgreen}
+\AtBeginEnvironment{exampleblock}{
+    \setbeamercolor{itemize item}{fg=HSEgreen}
+    \setbeamercolor{itemize subitem}{fg=HSEgreen}
+    \setbeamercolor{itemize subsubitem}{fg=HSEgreen}
+                                 }
+\setbeamercolor{palette primary}{bg=HSEblue}
+\setbeamercolor{palette primary}{fg=white}
+\setbeamercolor{palette secondary}{bg=HSEblue}
+\setbeamercolor{palette secondary}{fg=white}
+\setbeamercolor{palette tertiary}{bg=HSEblue}
+\setbeamercolor{palette tertiary}{fg=white}
+
+%%% Layout issues
+
+\setbeamertemplate{headline}{\vspace{0.02\textwidth}\hspace{0.05\textwidth}\includegraphics[width=0.06\textwidth]{HSE-theme/01_Znak_CMYK.pdf}}
+
+\setbeamertemplate{frametitle}{%
+  \vspace*{-4ex}
+  \begin{beamercolorbox}[leftskip=1.2cm]{frametitle}%
+    \usebeamerfont{frametitle}\insertframetitle\\
+    \usebeamerfont{framesubtitle}\insertframesubtitle
+  \end{beamercolorbox}
+}
+ 
+
+\makeatletter
+\setbeamertemplate{footline} % Footline
+{
+  \leavevmode%
+  \hbox{%
+%  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2ex,dp=1ex,center]{WhiteOnBlue}%
+%    \usebeamerfont{author in head/foot}\insertshortauthor
+%  \end{beamercolorbox}%
+%  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2ex,dp=1ex,center]{WhiteOnBlue}%
+%    \usebeamerfont{title in head/foot}\insertshortinstitute
+%  \end{beamercolorbox}%
+  %\begin{beamercolorbox}[wd=.333333\paperwidth,ht=2ex,dp=1ex,right]{WhiteOnBlue}%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2ex,dp=1ex,right]{BlueOnWhite}%
+    %\usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
+  \end{beamercolorbox}
+  }%
+  \vskip0pt%
+}
+\makeatother
+
+\setbeamertemplate{title page}
+{
+  \begin{columns}
+    \column{0.25\textwidth}
+        \hspace{0.015\textwidth}
+        \ifbool{russian}{\includegraphics[height=0.2\paperheight]{HSE-theme/01_Logo_HSE_full_rus_CMYK.pdf}}{\includegraphics[height=0.2\paperheight]{HSE-theme/01_Logo_HSE_full_eng_CMYK.pdf}}
+    \column{0.333\textwidth}
+        \begin{beamercolorbox}{institute}
+          \usebeamerfont{institute}\footnotesize\insertinstitute
+        \end{beamercolorbox}
+    \column{0.25\textwidth}
+        \begin{beamercolorbox}[right]{date}
+          \usebeamerfont{date}\footnotesize\insertdate
+        \end{beamercolorbox}
+    \end{columns}
+    \vspace{20pt} 
+    \vfill
+  
+    \begin{beamercolorbox}[left]{title}
+    \usebeamerfont{title}\Huge\inserttitle
+    \end{beamercolorbox}
+    \vspace{15pt} 
+    \begin{beamercolorbox}[left]{subtitle}
+        \usebeamerfont{subtitle}\Large\insertsubtitle
+    \end{beamercolorbox}
+    \vspace{15pt} 
+    \begin{beamercolorbox}[left]{author}
+        \usebeamerfont{author}\insertauthor
+    \end{beamercolorbox}
+}
