@@ -1,0 +1,54 @@
+\documentclass[a4paper,12pt]{book}
+\usepackage[unicode=true,hypertexnames=false]{hyperref}
+\usepackage{vkCourseML}
+%\usepackage{vkCourseML}
+\hypersetup{unicode=true}
+%\usepackage[a4paper]{geometry}
+% \usepackage[hyphenbreaks]{breakurl}  % Not needed with pdflatex
+\interfootnotelinepenalty=10000
+\newcommand{\dx}[1]{\,\mathrm{d}#1} % маленький отступ и прямая d
+
+\setcounter{tocdepth}{1}
+
+\graphicspath{{images/}{../images/}}
+\usepackage{subfiles}
+\usepackage{chngcntr}
+\counterwithin{figure}{chapter}
+
+\usepackage{tikz}
+
+% Reduce Underfull \hbox warnings
+\setlength{\topsep}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\partopsep}{0pt}
+\begin{document}
+% Further adjustments to reduce Underfull \hbox warnings
+\raggedbottom
+\hbadness=10000
+\hfuzz=50pt
+\newpage
+\tableofcontents
+
+\newpage
+\chapter{Введение}
+\setcounter{figure}{0}
+\subfile{chapters/01_intro}
+
+\newpage
+\chapter{Алгоритмы декомпозиции}
+\setcounter{figure}{0}
+\subfile{chapters/02_decompose}
+
+\newpage
+\chapter{Сведение к табличной задаче}
+\setcounter{figure}{0}
+\subfile{chapters/02_tables}
+
+\newpage
+\chapter{ETS}
+\setcounter{figure}{0}
+\subfile{chapters/03_ETS}
+
+\newpage
+
+\end{document}
