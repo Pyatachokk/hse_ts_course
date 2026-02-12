@@ -1,35 +1,38 @@
-[tool.poetry]
+[project]
 name = "hse-ts-course"
 version = "0.1.0"
 description = ""
-authors = ["Matvei Zekhov <zehov1@mail.ru>"]
+authors = [{ name = "Matvei Zekhov", email = "zehov1@mail.ru" }]
+requires-python = ">=3.10"
 readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "statsforecast>=2.0.0,<3",
+    "pandas>=2.2.3,<3",
+    "numpy==2.1",
+    "ipykernel>=6.29.5,<7",
+    "statsmodels>=0.14.4,<0.15",
+    "matplotlib>=3.10.0,<4",
+    "moepy>=1.1.4,<2",
+    "seaborn>=0.13.2,<0.14",
+    "holidays>=0.65,<0.66",
+    "xgboost>=2.1.3,<3",
+    "plotly>=6.0.0,<7",
+    "nbformat>=5.10.4,<6",
+    "yfinance>=0.2.52,<0.3",
+    "openpyxl>=3.1.5,<4",
+    "dieboldmariano>=1.1.0,<2",
+    "arch>=7.2.0,<8",
+    "torch>=2.7.0,<3",
+    "tensorboard>=2.19.0,<3",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10"
-statsforecast = "^2.0.0"
-pandas = "^2.2.3"
-numpy = "2.1"
-ipykernel = "^6.29.5"
-statsmodels = "^0.14.4"
-matplotlib = "^3.10.0"
-moepy = "^1.1.4"
-seaborn = "^0.13.2"
-holidays = "^0.65"
-xgboost = "^2.1.3"
-plotly = "^6.0.0"
-nbformat = "^5.10.4"
-yfinance = "^0.2.52"
-openpyxl = "^3.1.5"
-dieboldmariano = "^1.1.0"
-arch = "^7.2.0"
-torch = "^2.7.0"
-tensorboard = "^2.19.0"
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.5"
-notebook = "^7.4.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = ["ipykernel>=6.29.5,<7", "notebook>=7.4.1,<8"]
