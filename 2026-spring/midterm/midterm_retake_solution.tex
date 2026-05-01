@@ -1,0 +1,366 @@
+% arara: xelatex
+\documentclass[12pt]{article}
+
+\usepackage{physics}
+\usepackage{microtype}
+\usepackage{array}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage[top=2cm, left=1.6cm, right=1.6cm, bottom=2cm]{geometry}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\usepackage{hyperref}
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+\setmainfont{Arial}
+
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black}
+
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Corr}{\mathbb{C}orr}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+\DeclareMathOperator{\E}{\mathbb{E}}
+
+\newcommand \e{\varepsilon}
+\newcommand \cN{\mathcal{N}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\step}[1]{\medskip\noindent\textbf{#1}\par\nobreak\vspace{2pt}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\title{Midterm 2026 Retake --- решения}
+\author{Временные ряды, ВШЭ, весна 2026}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\textbf{Разбалловка.}\\[4pt]
+\begin{tabular}{@{}l|ccc|c@{}}
+\toprule
+Задача & (a) & (b) & (c) & \textbf{Итого} \\
+\midrule
+1 --- ETS$(AAN)$                          & 5 & 5 & --- & 10 \\
+2 --- GARCH$(1,1)$                       & 5 & 5 & 5   & 15 \\
+3 --- Лаговые полиномы и $MA(\infty)$    & 5 & 5 & 5   & 15 \\
+4 --- Ковариационная функция             & 10 & 5 & --- & 15 \\
+5 --- Нелинейный процесс                 & 5 & 5 & 5   & 15 \\
+\midrule
+\multicolumn{4}{r|}{\textbf{Всего за работу:}} & \(\mathbf{70}\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Задача 1. ETS$(AAN)$ \hfill [10 баллов]}
+
+Рассматривается модель
+\[
+\begin{cases}
+u_t \sim \cN(0;\sigma^2),\\
+\ell_t = \ell_{t-1} + b_{t-1} + 0.3u_t,\\
+b_t = b_{t-1} + 0.2u_t,\\
+y_t = \ell_{t-1} + b_{t-1} + u_t.
+\end{cases}
+\]
+
+\step{(a) ARIMA-представление. \hfill [5 баллов]}
+Имеем
+\[
+y_t=\ell_{t-1}+b_{t-1}+u_t
+=\ell_{t-2}+2b_{t-2}+0.5u_{t-1}+u_t.
+\]
+Так как
+\[
+y_{t-1}=\ell_{t-2}+b_{t-2}+u_{t-1},
+\]
+то
+\[
+y_t=y_{t-1}+b_{t-2}-0.5u_{t-1}+u_t.
+\]
+Аналогично,
+\[
+b_{t-2}=y_{t-1}-y_{t-2}+0.7u_{t-2}-u_{t-1}.
+\]
+Подставляя, получаем
+\[
+y_t-2y_{t-1}+y_{t-2}=u_t-1.5u_{t-1}+0.7u_{t-2}.
+\]
+Следовательно,
+\[
+\boxed{(1-L)^2y_t=(1-1.5L+0.7L^2)u_t.}
+\]
+
+\step{(b) Условные моменты. \hfill [5 баллов]}
+Из уравнений состояния
+\[
+y_{t+1}=\ell_t+b_t+u_{t+1}.
+\]
+При условии на $\cF_t$ величины $\ell_t$ и $b_t$ известны, а $u_{t+1}\sim\cN(0;\sigma^2)$ независима от прошлого. Поэтому
+\[
+\boxed{\E(y_{t+1}\mid\cF_t)=\ell_t+b_t, \qquad \Var(y_{t+1}\mid\cF_t)=\sigma^2.}
+\]
+
+\section*{Задача 2. GARCH$(1,1)$ \hfill [15 баллов]}
+
+Рассматривается модель
+\[
+r_t=\sigma_t z_t,\qquad z_t\sim\cN(0,1),\qquad
+\sigma_t^2=2+0.2r_{t-1}^2+0.7\sigma_{t-1}^2.
+\]
+
+\step{(a) Безусловная дисперсия. \hfill [5 баллов]}
+Так как
+\[
+0.2+0.7=0.9<1,
+\]
+безусловная дисперсия существует. Обозначим
+\[
+v=\Var(r_t)=\E(r_t^2)=\E(\sigma_t^2).
+\]
+Тогда
+\[
+v=2+0.2v+0.7v,
+\]
+откуда
+\[
+0.1v=2,\qquad v=20.
+\]
+Следовательно,
+\[
+\boxed{\Var(r_t)=20.}
+\]
+
+\step{(b) Двухшаговый прогноз волатильности. \hfill [5 баллов]}
+При $r_T=3$ и $\sigma_T^2=4$:
+\[
+\E(\sigma_{T+1}^2\mid\cF_T)=2+0.2\cdot 3^2+0.7\cdot 4=2+1.8+2.8=6.6.
+\]
+Далее
+\[
+\E(r_{T+1}^2\mid\cF_T)=\E(\sigma_{T+1}^2 z_{T+1}^2\mid\cF_T)
+=\sigma_{T+1}^2 \E(z_{T+1}^2)=6.6.
+\]
+Поэтому
+\[
+\E(\sigma_{T+2}^2\mid\cF_T)=2+0.2\cdot 6.6+0.7\cdot 6.6=7.94.
+\]
+Итак,
+\[
+\boxed{\E(\sigma_{T+1}^2\mid\cF_T)=6.6,\qquad \E(\sigma_{T+2}^2\mid\cF_T)=7.94.}
+\]
+
+\step{(c) Долгосрочный предел. \hfill [5 баллов]}
+Обозначим
+\[
+f_h=\E(r_{T+h}^2\mid\cF_T)=\E(\sigma_{T+h}^2\mid\cF_T).
+\]
+Тогда для $h\ge 1$
+\[
+f_{h+1}=2+0.9f_h.
+\]
+Предел $f_\infty$ удовлетворяет
+\[
+f_\infty=2+0.9f_\infty,
+\]
+то есть
+\[
+f_\infty=20.
+\]
+Следовательно,
+\[
+\boxed{\lim_{h\to\infty}\E(r_{T+h}^2\mid\cF_T)=20.}
+\]
+
+\section*{Задача 3. Лаговые полиномы и $MA(\infty)$ \hfill [15 баллов]}
+
+Рассматривается уравнение
+\[
+y_t-0.8y_{t-1}+0.12y_{t-2}=4+u_t-0.2u_{t-1},
+\qquad
+u_t\sim WN(0,1).
+\]
+
+\step{(a) Разложение на множители. \hfill [5 баллов]}
+Левая часть:
+\[
+1-0.8L+0.12L^2=(1-0.6L)(1-0.2L).
+\]
+Правая часть:
+\[
+1-0.2L.
+\]
+Итак,
+\[
+\boxed{(1-0.8L+0.12L^2)=(1-0.6L)(1-0.2L),\qquad 1-0.2L \text{ уже разложен.}}
+\]
+
+\step{(b) Более простое уравнение. \hfill [5 баллов]}
+Сначала найдём математическое ожидание стационарного решения:
+\[
+(1-0.8+0.12)\mu=4 \quad \Longrightarrow \quad 0.32\mu=4 \quad \Longrightarrow \quad \mu=12.5.
+\]
+Тогда
+\[
+(1-0.6L)(1-0.2L)(y_t-\mu)=(1-0.2L)u_t.
+\]
+Для стационарных решений общий множитель $(1-0.2L)$ сокращается, и получаем
+\[
+(1-0.6L)(y_t-\mu)=u_t.
+\]
+Эквивалентно,
+\[
+y_t-0.6y_{t-1}=5+u_t.
+\]
+Следовательно,
+\[
+\boxed{(1-0.6L)(y_t-12.5)=u_t}
+\quad\text{или}\quad
+\boxed{y_t=5+0.6y_{t-1}+u_t.}
+\]
+
+\step{(c) Явный вид $MA(\infty)$. \hfill [5 баллов]}
+Так как $|0.6|<1$,
+\[
+y_t-12.5=(1-0.6L)^{-1}u_t=\sum_{j=0}^{\infty}0.6^j u_{t-j}.
+\]
+Отсюда
+\[
+\boxed{y_t=12.5+u_t+0.6u_{t-1}+0.6^2u_{t-2}+\cdots.}
+\]
+
+\section*{Задача 4. Ковариационная функция \hfill [15 баллов]}
+
+Задано:
+\[
+\gamma_k^{(1)}=
+\begin{cases}
+2, & k=0,\\
+1, & |k|=1,\\
+0, & |k|\ge 2,
+\end{cases}
+\qquad
+\gamma_k^{(2)}=
+\begin{cases}
+1, & k=0,\\
+2, & |k|=1,\\
+0, & |k|\ge 2.
+\end{cases}
+\]
+
+\step{(a) Проверка существования. \hfill [10 баллов]}
+Для $\gamma^{(1)}$ рассмотрим процесс
+\[
+x_t=\eta_t+\eta_{t-1},\qquad \eta_t\sim WN(0,1).
+\]
+Тогда
+\[
+\Var(x_t)=1+1=2,\qquad \Cov(x_t,x_{t-1})=1,
+\]
+а при $|k|\ge 2$ общих шумов уже нет, поэтому
+\[
+\Cov(x_t,x_{t-k})=0.
+\]
+Значит, $\gamma^{(1)}$ действительно является ковариационной функцией стационарного процесса.
+
+Для $\gamma^{(2)}$ рассмотрим ковариационную матрицу размера $2$:
+\[
+\Gamma_2=
+\begin{pmatrix}
+1 & 2\\
+2 & 1
+\end{pmatrix}.
+\]
+Её определитель равен
+\[
+\det \Gamma_2 = 1\cdot 1 - 2\cdot 2 = -3 < 0.
+\]
+Ковариационная матрица не может иметь отрицательный определитель, если она должна быть неотрицательно определённой. Поэтому $\gamma^{(2)}$ не может быть ковариационной функцией стационарного процесса.
+
+Итак,
+\[
+\boxed{\gamma^{(1)}\text{ может быть ковариационной функцией,}\qquad \gamma^{(2)}\text{ не может.}}
+\]
+
+\step{(b) Явный пример. \hfill [5 баллов]}
+Для допустимой функции подходит процесс
+\[
+\boxed{x_t=\eta_t+\eta_{t-1},\qquad \eta_t\sim WN(0,1).}
+\]
+У него
+\[
+\Var(x_t)=2,\qquad \Cov(x_t,x_{t-1})=1,\qquad \Cov(x_t,x_{t-k})=0 \text{ при } |k|\ge 2,
+\]
+то есть ковариационная функция совпадает с $\gamma^{(1)}$.
+
+\section*{Задача 5. Нелинейный процесс \hfill [15 баллов]}
+
+Пусть $\e_t$ независимы и
+\[
+\e_t\sim\cN(0,1),\qquad x_t=\e_t\e_{t-1}.
+\]
+
+\step{(a) Слабая стационарность. \hfill [5 баллов]}
+Процесс $(x_t)$ является даже строго стационарным, поскольку это одна и та же измеримая функция от сдвигов i.i.d.-последовательности $(\e_t)$.
+
+Проверим моменты:
+\[
+\E(x_t)=\E(\e_t)\E(\e_{t-1})=0.
+\]
+Далее,
+\[
+\Var(x_t)=\E(\e_t^2\e_{t-1}^2)=\E(\e_t^2)\E(\e_{t-1}^2)=1.
+\]
+Для лага 1:
+\[
+\Cov(x_t,x_{t-1})=\E(\e_t\e_{t-1}^2\e_{t-2})=0.
+\]
+Для $|k|\ge 2$ произведение тоже содержит независимый множитель с нулевым средним, поэтому
+\[
+\Cov(x_t,x_{t-k})=0.
+\]
+Следовательно,
+\[
+\boxed{(x_t)\text{ является слабо стационарным процессом.}}
+\]
+
+\step{(b) Белый шум. \hfill [5 баллов]}
+Мы уже показали, что
+\[
+\E(x_t)=0,\qquad \Var(x_t)=1,\qquad \Cov(x_t,x_{t-k})=0 \text{ при } k\ne 0.
+\]
+Значит,
+\[
+\boxed{(x_t)\text{ является белым шумом.}}
+\]
+
+\step{(c) Независимость. \hfill [5 баллов]}
+Величины $x_t$ и $x_{t+1}$ делят общий множитель $\e_t$, поэтому независимость неочевидна. Проверим её через квадраты:
+\[
+x_t^2=\e_t^2\e_{t-1}^2,\qquad x_{t+1}^2=\e_{t+1}^2\e_t^2.
+\]
+Тогда
+\[
+\E(x_t^2)=1,\qquad \E(x_{t+1}^2)=1,
+\]
+а
+\[
+\E(x_t^2x_{t+1}^2)
+=\E(\e_{t-1}^2)\E(\e_t^4)\E(\e_{t+1}^2)
+=1\cdot 3\cdot 1=3.
+\]
+Следовательно,
+\[
+\Cov(x_t^2,x_{t+1}^2)=3-1\cdot 1=2\ne 0.
+\]
+Значит, $x_t^2$ и $x_{t+1}^2$ зависимы, а значит и $x_t$, $x_{t+1}$ независимыми быть не могут. Итак,
+\[
+\boxed{(x_t)\text{ не состоит из независимых случайных величин.}}
+\]
+
+\end{document}

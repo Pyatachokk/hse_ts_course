@@ -1,0 +1,186 @@
+% arara: xelatex
+\documentclass[12pt]{article}
+
+\usepackage{physics}
+\usepackage{microtype}
+\usepackage{array}
+\usepackage{indentfirst}
+\usepackage{sectsty}
+\allsectionsfont{\centering}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{comment}
+\usepackage[top=2cm, left=1.2cm, right=1.2cm, bottom=2cm]{geometry}
+\usepackage{lastpage}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+\setmainfont{Arial}
+\setlength{\headheight}{15pt}
+
+\pagestyle{fancy}
+\lhead{Временные ряды}
+\chead{}
+\rhead{Контрольная работа}
+\lfoot{}
+\cfoot{DON'T PANIC}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ}
+\setlist[enumerate, 2]{label=\asbuk*),ref=\asbuk*}
+
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Corr}{\mathbb{C}orr}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\plim}{plim}
+
+\newcommand \hb{\hat{\beta}}
+\newcommand \hs{\hat{\sigma}}
+\newcommand \htheta{\hat{\theta}}
+\newcommand \s{\sigma}
+\newcommand \hy{\hat{y}}
+\newcommand \hY{\hat{Y}}
+\newcommand \e{\varepsilon}
+\newcommand \he{\hat{\e}}
+\newcommand \z{z}
+\newcommand \hVar{\widehat{\Var}}
+\newcommand \hCorr{\widehat{\Corr}}
+\newcommand \hCov{\widehat{\Cov}}
+\newcommand \cN{\mathcal{N}}
+\newcommand \RR{\mathbb{R}}
+\newcommand \NN{\mathbb{N}}
+\newcommand{\cF}{\mathcal{F}}
+
+\begin{document}
+
+\begin{enumerate}
+    
+    \item \textbf{(10 баллов)} Рассмотрим модель $ETS(AAN)$:
+    \[
+    \begin{cases}
+    u_t \sim \cN(0;\sigma^2),\\
+    \ell_t = \ell_{t-1} + b_{t-1} + \alpha u_t,\\
+    b_t = b_{t-1} + \beta u_t,\\
+    y_t = \ell_{t-1} + b_{t-1} + u_t.
+    \end{cases}
+    \]
+    
+    \begin{enumerate}
+        \item (5 баллов) Выразите $y_t$ через $y_{t-1}$, $y_{t-2}$ и ошибки $u_t$, $u_{t-1}$, $u_{t-2}$ (то есть получите ARIMA-представление модели).
+        
+        \item (5 баллов) Найдите математическое ожидание и условную дисперсию
+        \[
+        \E(y_{t+1}\mid \mathcal{F}_t), \quad \Var(y_{t+1}\mid \mathcal{F}_t).
+        \]
+        
+    \end{enumerate}
+    
+    \item \textbf{(15 баллов)} Доходности актива описываются моделью $GARCH(1,1)$:
+    \[
+    r_t = \sigma_t z_t, \qquad z_t \sim \cN(0;1),
+    \]
+    \[
+    \sigma_t^2 = 1 + 0.25\,r_{t-1}^2 + 0.6\,\sigma_{t-1}^2.
+    \]
+    
+    \begin{enumerate}
+        \item (5 баллов) Существует ли у процесса безусловная дисперсия? Если да, найдите $\Var(r_t)$.
+        \item (5 баллов) Пусть $r_T=2$ и $\sigma_T^2=5$. Найдите
+        \[
+        \E(\sigma_{T+1}^2\mid \mathcal{F}_T)
+        \quad \text{и} \quad
+        \E(\sigma_{T+2}^2\mid \mathcal{F}_T).
+        \]
+        \item (5 баллов) Найдите
+        \[
+        \lim_{h\to\infty}\E(r_{T+h}^2\mid \mathcal{F}_T).
+        \]
+    \end{enumerate}
+    
+    \item \textbf{(15 баллов)} Рассмотрим уравнение
+    \[
+    (1-0.7L)(1-L)y_t = 3 + (1+0.4L)\e_t,
+    \qquad \e_t \sim WN(0,1).
+    \]
+    
+    \begin{enumerate}
+        \item (5 балла) Классифицируйте этот процесс как $ARIMA(p,d,q)$. Укажите $p,d,q$.
+        \item (5 балла) Найдите первые два значения ACF и PACF после взятия d
+        \item (5 балла) Найдите предел после взятия d
+        \[
+        \lim_{h\to\infty}\E(y_{T+h}-y_{T+h-1}\mid \mathcal{F}_T).
+        \]
+    
+    \end{enumerate}
+    
+    \item \textbf{(15 баллов)} $(y_t)$ описывается уравнением
+    \[
+    y_t - 0.9 y_{t-1} + 0.2 y_{t-2} =5 + u_t - 0.5 u_{t-1},
+    \qquad u_t \sim WN(0,1).
+    \]
+    
+    \begin{enumerate}
+        \item (5 баллов) Разложите лаговые полиномы на множители
+        \item (5 баллов) Выпишите более простое уравнение с тем же множеством стационарных решений
+        \item (5 баллов) Для стационарного решения найдите явный вид $MA(\infty)$-представления.
+    \end{enumerate}
+    
+\item \textbf{(10 баллов)} Для двух функций $\gamma^{(1)}_k$ и $\gamma^{(2)}_k$, заданных на $\mathbb{Z}$, известно, что
+\[
+\gamma^{(j)}_{-k}=\gamma^{(j)}_k, \qquad j=1,2.
+\]
+
+Кроме того, для $k \ge 0$:
+\[
+\gamma^{(1)}_k =
+\begin{cases}
+1, & k=0,\\
+0.8, & k=1,\\
+0.2, & k=2,\\
+0, & k\ge 3,
+\end{cases}
+\]
+
+\[
+\gamma^{(2)}_k =
+\begin{cases}
+1, & k=0,\\
+0, & k=1,\\
+\frac12, & k=2,\\
+0, & k\ge 3.
+\end{cases}
+\]
+
+\begin{enumerate}
+    \item Для каждой из функций $\gamma^{(1)}_k$ и $\gamma^{(2)}_k$ проверьте, может ли она быть ковариационной функцией некоторого стационарного процесса.
+    
+    \item (5 баллов) Для каждой функции, которая может быть ковариационной функцией стационарного процесса, предложите пример соответствующего процесса.
+\end{enumerate}
+    
+    \item \textbf{(15 баллов)} Пусть $(\e_t)$ --- последовательность независимых случайных величин, принимающих значения $-1$ и $1$ с вероятностями $1/2$ и $1/2$. Рассмотрим процесс
+    \[
+    x_t = \e_t \e_{t-1}.
+    \]
+    
+    \begin{enumerate}
+        \item (5 баллов) Является ли процесс $(x_t)$ слабо стационарным?
+        \item (5 баллов) Является ли он белым шумом?
+        \item (5 баллов) Являются ли величины $x_t$ независимыми? Ответ обоснуйте.
+    \end{enumerate}
+    
+\end{enumerate}
+
+
+
+\end{document}
