@@ -3,20 +3,17 @@ name = "hse-ts-course"
 version = "0.1.0"
 description = ""
 authors = [{ name = "Matvei Zekhov", email = "zehov1@mail.ru" }]
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
     "statsforecast>=2.0.0,<3",
     "pandas>=2.2.3,<3",
-    "numpy==2.1",
+    "numpy>=2.3,<3",
     "ipykernel>=6.29.5,<7",
     "statsmodels>=0.14.4,<0.15",
     "matplotlib>=3.10.0,<4",
@@ -29,10 +26,15 @@ dependencies = [
     "yfinance>=0.2.52,<0.3",
     "openpyxl>=3.1.5,<4",
     "dieboldmariano>=1.1.0,<2",
-    "arch>=7.2.0,<8",
+    "arch>=8,<9",
     "torch>=2.7.0,<3",
     "tensorboard>=2.19.0,<3",
+    "kaleido>=1.2.0",
+    "scipy>=1.16.3,<1.17",
 ]
+
+[tool.uv]
+override-dependencies = ["scipy>=1.16.3,<1.17"]
 
 [dependency-groups]
 dev = ["ipykernel>=6.29.5,<7", "notebook>=7.4.1,<8"]
