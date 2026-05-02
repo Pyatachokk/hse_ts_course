@@ -1,0 +1,7 @@
+interface:
+  display_name: "TS Notes Visualizations"
+  short_description: "Create Plotly figures for TS notes"
+  default_prompt: "Use $ts-notes-visualizations to add a Plotly visualization to the time-series lecture notes."
+
+policy:
+  allow_implicit_invocation: true
