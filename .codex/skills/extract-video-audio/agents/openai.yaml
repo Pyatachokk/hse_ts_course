@@ -1,0 +1,7 @@
+interface:
+  display_name: "Extract Video Audio"
+  short_description: "Extract course video audio to audio/raw"
+  default_prompt: "Use $extract-video-audio to extract audio tracks from course videos into audio/raw folders."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,7 +1,9 @@
 */catboost_info/*
 /books
+20??-*/videos/
 *-checkpoint.ipynb
 .vscode/settings.json
+.env
 *.xlsx
 venv
 *.csv

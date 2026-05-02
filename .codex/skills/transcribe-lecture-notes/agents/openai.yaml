@@ -1,0 +1,7 @@
+interface:
+  display_name: "Transcribe Lecture Notes"
+  short_description: "Build cleaned lecture markdown from video, transcript, and PDF"
+  default_prompt: "Use $transcribe-lecture-notes to extract audio, transcribe lectures, compare transcripts with PDF notes, and create cleaned markdown lecture notes."
+
+policy:
+  allow_implicit_invocation: true

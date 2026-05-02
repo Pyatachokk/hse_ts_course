@@ -1,28 +1,38 @@
 # Agent Instructions
 
-## Repository Codex Skill
+## Repository Codex Skills
 
-This repository ships the `ts-notes-visualizations` Codex skill at:
+This repository ships Codex skills at:
 
 ```text
+.codex/skills/extract-video-audio
+.codex/skills/transcribe-lecture-notes
 .codex/skills/ts-notes-visualizations
 ```
 
-When setting up this repository on another machine, install or refresh the skill with:
+When setting up this repository on another machine, install or refresh the skills with:
 
 ```bash
 REPO_DIR="$(git rev-parse --show-toplevel)"
 CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 mkdir -p "$CODEX_SKILLS_DIR"
-rm -rf "$CODEX_SKILLS_DIR/ts-notes-visualizations"
-cp -R "$REPO_DIR/.codex/skills/ts-notes-visualizations" "$CODEX_SKILLS_DIR/"
+for SKILL_NAME in extract-video-audio transcribe-lecture-notes ts-notes-visualizations; do
+  rm -rf "$CODEX_SKILLS_DIR/$SKILL_NAME"
+  cp -R "$REPO_DIR/.codex/skills/$SKILL_NAME" "$CODEX_SKILLS_DIR/"
+done
 ```
 
 Verify the install from the repository root:
 
 ```bash
-SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills/ts-notes-visualizations"
-uv run python "$SKILL_DIR/scripts/locate_ts_notes.py" --repo "$PWD" --format json
+TS_SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills/ts-notes-visualizations"
+uv run python "$TS_SKILL_DIR/scripts/locate_ts_notes.py" --repo "$PWD" --format json
+
+AUDIO_SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills/extract-video-audio"
+uv run python "$AUDIO_SKILL_DIR/scripts/extract_audio.py" --repo "$PWD" --help
+
+LECTURE_TRANSCRIBE_SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills/transcribe-lecture-notes"
+uv run python "$LECTURE_TRANSCRIBE_SKILL_DIR/scripts/lecture_pipeline.py" --repo "$PWD" --year-dir 2025-spring --lecture 12 --dry-run
 ```
 
 When invoking skill helper scripts, always use `uv run python ...`; do not run them with bare `python`, `python3`, or direct script execution.
