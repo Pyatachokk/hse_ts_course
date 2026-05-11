@@ -1,6 +1,8 @@
 */catboost_info/*
 /books
 20??-*/videos/
+20??-*/lectures/videos/
+20??-*/seminars/videos/
 *-checkpoint.ipynb
 .vscode/settings.json
 .env
@@ -13,3 +15,4 @@ venv
 *.toc
 *.synctex.gz
 *.DS_Store
+*m4a

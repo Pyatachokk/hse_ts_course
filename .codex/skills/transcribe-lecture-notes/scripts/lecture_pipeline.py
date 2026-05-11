@@ -11,11 +11,14 @@ from pathlib import Path
 
 VIDEO_EXTENSIONS = {".3gp", ".avi", ".flv", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".webm", ".wmv"}
 AUDIO_EXTENSIONS = {".aac", ".flac", ".m4a", ".mp3", ".mpga", ".oga", ".ogg", ".wav", ".webm"}
+CONTENT_KINDS = ("lectures", "seminars")
 
 
 @dataclass(frozen=True)
 class LectureJob:
     key: str
+    kind: str
+    content_root: Path
     video: Path | None
     pdf: Path | None
     audio: Path | None
@@ -27,17 +30,53 @@ class LectureJob:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Prepare lecture audio, raw transcripts, PDF pages, and markdown validation."
+        description=(
+            "Prepare lecture or seminar audio, raw transcripts, PDF pages, "
+            "and markdown validation."
+        )
     )
     parser.add_argument("--repo", type=Path, default=None)
     parser.add_argument("--year-dir", required=True, help="Year directory such as 2025-spring.")
     parser.add_argument(
+        "--kind",
+        choices=CONTENT_KINDS,
+        default="lectures",
+        help=(
+            "Content folder inside the year directory. Use lectures for lecture "
+            "materials and seminars for seminar materials."
+        ),
+    )
+    parser.add_argument(
         "--lecture",
         action="append",
         default=[],
-        help="Lecture filter: number, basename fragment, or title fragment. May be repeated.",
+        help=(
+            "Lecture filter: number, basename fragment, or title fragment. "
+            "May be repeated."
+        ),
     )
-    parser.add_argument("--all", action="store_true", help="Process every lecture in the year.")
+    parser.add_argument(
+        "--seminar",
+        action="append",
+        default=[],
+        help=(
+            "Seminar filter alias: number, basename fragment, or title fragment. "
+            "May be repeated."
+        ),
+    )
+    parser.add_argument(
+        "--item",
+        action="append",
+        default=[],
+        help=(
+            "Generic content filter for either lectures or seminars. May be repeated."
+        ),
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Process every item in the selected content folder.",
+    )
     parser.add_argument("--extract-audio", action="store_true")
     parser.add_argument("--transcribe", action="store_true")
     parser.add_argument("--render-pdf", action="store_true")
@@ -51,6 +90,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--audio-format", choices=["m4a", "mp3", "wav"], default="m4a")
     parser.add_argument("--language", default=None)
+    parser.add_argument(
+        "--cib-max-request-seconds",
+        type=int,
+        default=None,
+        help=(
+            "CIB LLM API maximum audio duration per transcription request. "
+            "Forwarded only to the transcription step."
+        ),
+    )
+    parser.add_argument(
+        "--cib-chunk-seconds",
+        type=int,
+        default=None,
+        help="Seconds per local ffmpeg chunk for CIB LLM API transcription.",
+    )
     return parser.parse_args()
 
 
@@ -80,13 +134,24 @@ def resolve_year_dir(repo: Path, value: str) -> Path:
     return path
 
 
+def resolve_content_root(year_dir: Path, kind: str) -> Path:
+    content_root = year_dir / kind
+    if not content_root.exists() or not content_root.is_dir():
+        raise SystemExit(f"Content directory not found: {content_root}")
+    return content_root
+
+
 def normalize(value: str) -> str:
     return " ".join(re.sub(r"[^\w]+", " ", value.lower(), flags=re.UNICODE).split())
 
 
 def lecture_number(path: Path) -> int | None:
     text = path.stem.lower()
-    match = re.search(r"(?:lecture|лекция)[\s_.-]*0*(\d+)", text, re.IGNORECASE)
+    match = re.search(
+        r"(?:lecture|лекция|seminar|семинар|sem)[\s_.-]*0*(\d+)",
+        text,
+        re.IGNORECASE,
+    )
     if match:
         return int(match.group(1))
     digits = re.findall(r"\d+", text)
@@ -95,10 +160,19 @@ def lecture_number(path: Path) -> int | None:
     return None
 
 
+def item_prefix(path: Path) -> str:
+    text = path.stem.lower()
+    if re.search(r"(?:seminar|семинар|sem)[\s_.-]*\d*", text, re.IGNORECASE):
+        return "seminar"
+    if re.search(r"(?:lecture|лекция)[\s_.-]*\d*", text, re.IGNORECASE):
+        return "lecture"
+    return "item"
+
+
 def lecture_key(path: Path) -> str:
     number = lecture_number(path)
     if number is not None:
-        return f"lecture-{number:02d}"
+        return f"{item_prefix(path)}-{number:02d}"
     return normalize(path.stem)
 
 
@@ -139,19 +213,22 @@ def first_by_key(paths: list[Path]) -> dict[str, Path]:
     return result
 
 
-def expected_audio_path(year_dir: Path, video: Path, audio_format: str) -> Path:
-    videos_dir = year_dir / "videos"
-    relative = video.relative_to(videos_dir).with_suffix(f".{audio_format}")
-    return year_dir / "audio" / "raw" / relative
+def relative_to_named_parent(path: Path, parent_name: str) -> Path:
+    for parent in path.parents:
+        if parent.name == parent_name:
+            return path.relative_to(parent)
+    return Path(path.name)
 
 
-def expected_transcript_path(year_dir: Path, audio: Path) -> Path:
-    audio_root = year_dir / "audio" / "raw"
-    try:
-        relative = audio.relative_to(audio_root)
-    except ValueError:
-        relative = Path(audio.name)
-    return (year_dir / "transcriptions" / "raw" / relative).with_suffix(".transcript.txt")
+def expected_audio_path(content_root: Path, video: Path, audio_format: str) -> Path:
+    relative = relative_to_named_parent(video, "videos").with_suffix(f".{audio_format}")
+    return content_root / "audio" / "raw" / relative
+
+
+def expected_transcript_path(content_root: Path, name_source: Path) -> Path:
+    return (
+        content_root / "transcriptions" / "raw" / f"{name_source.stem}.transcript.txt"
+    )
 
 
 def choose_existing_by_key(paths: list[Path], key: str) -> Path | None:
@@ -161,23 +238,81 @@ def choose_existing_by_key(paths: list[Path], key: str) -> Path | None:
     return None
 
 
-def resolve_jobs(args: argparse.Namespace, repo: Path, year_dir: Path) -> list[LectureJob]:
-    videos = iter_files(year_dir / "videos", VIDEO_EXTENSIONS)
-    pdfs = iter_files(year_dir / "lectures", {".pdf"})
-    new_audio = iter_files(year_dir / "audio" / "raw", AUDIO_EXTENSIONS)
-    legacy_audio = iter_files(year_dir / "transcribations", AUDIO_EXTENSIONS)
-    new_transcripts = iter_files(year_dir / "transcriptions" / "raw", {".txt", ".json"})
-    legacy_transcripts = iter_files(year_dir / "transcribations", {".txt", ".json"})
-    new_markdown = iter_files(year_dir / "cleaned_transcriptions", {".md"})
-    legacy_markdown = iter_files(year_dir / "cleaned_transcribations", {".md"})
+def requested_filters(args: argparse.Namespace) -> list[str]:
+    return [*args.lecture, *args.seminar, *args.item]
+
+
+def legacy_roots(year_dir: Path, content_root: Path, kind: str) -> dict[str, list[Path]]:
+    roots = {
+        "audio": [content_root / "transcribations"],
+        "transcripts": [content_root / "transcribations"],
+        "markdown": [
+            content_root / "cleaned_transcriptions",
+            content_root / "cleaned_transcribations",
+        ],
+    }
+    if kind == "lectures":
+        roots["audio"].extend([year_dir / "audio" / "raw", year_dir / "transcribations"])
+        roots["transcripts"].extend(
+            [year_dir / "transcriptions" / "raw", year_dir / "transcribations"]
+        )
+        roots["markdown"].extend(
+            [
+                year_dir / "transcriptions" / "cleaned",
+                year_dir / "cleaned_transcriptions",
+                year_dir / "cleaned_transcribations",
+            ]
+        )
+    return roots
+
+
+def resolve_jobs(
+    args: argparse.Namespace,
+    year_dir: Path,
+    content_root: Path,
+) -> list[LectureJob]:
+    filters = requested_filters(args)
+    videos = [
+        *iter_files(content_root / "videos", VIDEO_EXTENSIONS),
+        *(
+            iter_files(year_dir / "videos", VIDEO_EXTENSIONS)
+            if args.kind == "lectures"
+            else []
+        ),
+    ]
+    pdfs = iter_files(content_root, {".pdf"})
+    new_audio = iter_files(content_root / "audio" / "raw", AUDIO_EXTENSIONS)
+    roots = legacy_roots(year_dir, content_root, args.kind)
+    legacy_audio = [
+        path for root in roots["audio"] for path in iter_files(root, AUDIO_EXTENSIONS)
+    ]
+    new_transcripts = iter_files(content_root / "transcriptions" / "raw", {".txt", ".json"})
+    legacy_transcripts = [
+        path for root in roots["transcripts"] for path in iter_files(root, {".txt", ".json"})
+    ]
+    new_markdown = iter_files(content_root / "transcriptions" / "cleaned", {".md"})
+    legacy_markdown = [
+        path for root in roots["markdown"] for path in iter_files(root, {".md"})
+    ]
 
     selected: set[str] = set()
-    for path in [*videos, *pdfs, *new_audio, *legacy_audio, *new_transcripts, *legacy_transcripts]:
-        if args.all or matches_filter(path, args.lecture):
+    for path in [
+        *videos,
+        *pdfs,
+        *new_audio,
+        *legacy_audio,
+        *new_transcripts,
+        *legacy_transcripts,
+        *new_markdown,
+        *legacy_markdown,
+    ]:
+        if args.all or matches_filter(path, filters):
             selected.add(lecture_key(path))
 
     if not selected:
-        raise SystemExit("No matching lectures found. Pass --lecture or --all.")
+        raise SystemExit(
+            "No matching items found. Pass --lecture, --seminar, --item, or --all."
+        )
 
     videos_by_key = first_by_key(videos)
     pdfs_by_key = first_by_key(pdfs)
@@ -189,22 +324,28 @@ def resolve_jobs(args: argparse.Namespace, repo: Path, year_dir: Path) -> list[L
             choose_existing_by_key(new_audio, key)
             or choose_existing_by_key(legacy_audio, key)
         )
-        expected_audio = expected_audio_path(year_dir, video, args.audio_format) if video else None
+        expected_audio = expected_audio_path(content_root, video, args.audio_format) if video else None
         audio = existing_audio or expected_audio
-        existing_transcript = (
-            choose_existing_by_key(new_transcripts, key)
-            or choose_existing_by_key(legacy_transcripts, key)
-        )
-        expected_transcript = expected_transcript_path(year_dir, audio) if audio else None
         existing_markdown = (
             choose_existing_by_key(new_markdown, key)
             or choose_existing_by_key(legacy_markdown, key)
         )
-        final_name = existing_markdown.name if existing_markdown else f"{(pdf or video or audio).stem}.md"
-        final_markdown = year_dir / "cleaned_transcriptions" / final_name
+        existing_transcript = (
+            choose_existing_by_key(new_transcripts, key)
+            or choose_existing_by_key(legacy_transcripts, key)
+        )
+        name_source = pdf or existing_markdown or video or audio or existing_transcript
+        if name_source is None:
+            raise SystemExit(f"{key}: could not resolve a source name for markdown.")
+        expected_transcript = (
+            expected_transcript_path(content_root, name_source) if audio else None
+        )
+        final_markdown = content_root / "transcriptions" / "cleaned" / f"{name_source.stem}.md"
         jobs.append(
             LectureJob(
                 key=key,
+                kind=args.kind,
+                content_root=content_root,
                 video=video,
                 pdf=pdf,
                 audio=audio,
@@ -227,6 +368,8 @@ def print_plan(jobs: list[LectureJob]) -> None:
             [
                 {
                     "key": job.key,
+                    "kind": job.kind,
+                    "content_root": str(job.content_root),
                     "video": path_or_none(job.video),
                     "pdf": path_or_none(job.pdf),
                     "audio": path_or_none(job.audio),
@@ -261,6 +404,8 @@ def run_extract(repo: Path, jobs: list[LectureJob], args: argparse.Namespace) ->
         str(script),
         "--repo",
         str(repo),
+        "--kind",
+        args.kind,
         "--format",
         args.audio_format,
     ]
@@ -295,6 +440,12 @@ def run_transcribe(repo: Path, jobs: list[LectureJob], args: argparse.Namespace)
         ]
         if args.language:
             command.extend(["--language", args.language])
+        if args.cib_max_request_seconds is not None:
+            command.extend(
+                ["--cib-max-request-seconds", str(args.cib_max_request_seconds)]
+            )
+        if args.cib_chunk_seconds is not None:
+            command.extend(["--cib-chunk-seconds", str(args.cib_chunk_seconds)])
         if args.overwrite:
             command.append("--overwrite")
         if args.dry_run:
@@ -323,12 +474,13 @@ def run_validate(markdown_paths: list[str]) -> None:
 
 def main() -> int:
     args = parse_args()
-    if not args.all and not args.lecture:
-        raise SystemExit("Pass --lecture or --all.")
+    if not args.all and not requested_filters(args):
+        raise SystemExit("Pass --lecture, --seminar, --item, or --all.")
 
     repo = resolve_repo(args.repo)
     year_dir = resolve_year_dir(repo, args.year_dir)
-    jobs = resolve_jobs(args, repo, year_dir)
+    content_root = resolve_content_root(year_dir, args.kind)
+    jobs = resolve_jobs(args, year_dir, content_root)
     print_plan(jobs)
 
     if args.extract_audio:

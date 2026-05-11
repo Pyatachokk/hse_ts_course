@@ -24,6 +24,7 @@ VIDEO_EXTENSIONS = {
 }
 
 YEAR_DIR_PATTERN = re.compile(r"^20\d{2}-(spring|fall)$")
+CONTENT_KINDS = ("lectures", "seminars")
 
 
 @dataclass(frozen=True)
@@ -35,7 +36,7 @@ class ExtractionPlan:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Extract audio from hse_ts_course videos into sibling "
+            "Extract audio from hse_ts_course videos into content-level "
             "audio/raw directories."
         )
     )
@@ -57,9 +58,21 @@ def parse_args() -> argparse.Namespace:
         help="Year directory to process, such as 2026-spring. May be repeated.",
     )
     parser.add_argument(
+        "--kind",
+        choices=CONTENT_KINDS,
+        default="lectures",
+        help=(
+            "Content folder inside each year directory. Defaults to lectures; "
+            "use seminars when extracting seminar videos."
+        ),
+    )
+    parser.add_argument(
         "--all-years",
         action="store_true",
-        help="Process every 20??-spring/fall directory that has a videos folder.",
+        help=(
+            "Process every 20??-spring/fall directory that has a selected "
+            "content videos folder."
+        ),
     )
     parser.add_argument(
         "--format",
@@ -115,6 +128,10 @@ def is_year_dir(path: Path) -> bool:
     return path.is_dir() and YEAR_DIR_PATTERN.match(path.name) is not None
 
 
+def is_content_dir(path: Path) -> bool:
+    return path.name in CONTENT_KINDS and is_year_dir(path.parent)
+
+
 def iter_video_files(directory: Path) -> list[Path]:
     if not directory.exists():
         return []
@@ -125,21 +142,42 @@ def iter_video_files(directory: Path) -> list[Path]:
     )
 
 
-def output_for_video(source: Path, audio_format: str, legacy_transcribations: bool) -> Path:
+def content_root_for_videos_dir(videos_dir: Path, content_kind: str) -> Path:
+    parent = videos_dir.parent
+    if is_content_dir(parent):
+        return parent
+    if is_year_dir(parent):
+        return parent / content_kind
+    return parent
+
+
+def output_for_video(
+    source: Path,
+    audio_format: str,
+    legacy_transcribations: bool,
+    content_kind: str,
+) -> Path:
     videos_dir = nearest_videos_dir(source)
-    output_parts = ("transcribations",) if legacy_transcribations else ("audio", "raw")
     if videos_dir is None:
+        output_parts = ("transcribations",) if legacy_transcribations else ("audio", "raw")
         output_root = source.parent.joinpath(*output_parts)
         relative = source.name
     else:
-        output_root = videos_dir.parent.joinpath(*output_parts)
+        content_root = content_root_for_videos_dir(videos_dir, content_kind)
+        output_root = (
+            content_root / "transcribations"
+            if legacy_transcribations
+            else content_root / "audio" / "raw"
+        )
         relative = source.relative_to(videos_dir)
     return (output_root / relative).with_suffix(f".{audio_format}")
 
 
 def nearest_videos_dir(source: Path) -> Path | None:
     for parent in source.parents:
-        if parent.name == "videos" and is_year_dir(parent.parent):
+        if parent.name != "videos":
+            continue
+        if is_year_dir(parent.parent) or is_content_dir(parent.parent):
             return parent
     return None
 
@@ -148,19 +186,32 @@ def plans_for_directory(
     directory: Path,
     audio_format: str,
     legacy_transcribations: bool,
+    content_kind: str,
 ) -> list[ExtractionPlan]:
     if is_year_dir(directory):
-        directory = directory / "videos"
+        content_videos_dir = directory / content_kind / "videos"
+        legacy_videos_dir = directory / "videos"
+        directory = content_videos_dir if content_videos_dir.exists() else legacy_videos_dir
 
     if directory.name != "videos":
-        videos_dir = directory / "videos"
+        if is_content_dir(directory):
+            videos_dir = directory / "videos"
+        else:
+            videos_dir = directory / content_kind / "videos"
+            if not videos_dir.exists():
+                videos_dir = directory / "videos"
         if videos_dir.exists():
             directory = videos_dir
 
     return [
         ExtractionPlan(
             source=source,
-            output=output_for_video(source, audio_format, legacy_transcribations),
+            output=output_for_video(
+                source,
+                audio_format,
+                legacy_transcribations,
+                content_kind,
+            ),
         )
         for source in iter_video_files(directory)
     ]
@@ -171,12 +222,26 @@ def collect_plans(args: argparse.Namespace, repo: Path) -> list[ExtractionPlan]:
 
     for year_value in args.year_dir:
         year_dir = resolve_input(repo, year_value)
-        plans.extend(plans_for_directory(year_dir, args.format, args.legacy_transcribations))
+        plans.extend(
+            plans_for_directory(
+                year_dir,
+                args.format,
+                args.legacy_transcribations,
+                args.kind,
+            )
+        )
 
     if args.all_years:
         year_dirs = sorted(path for path in repo.iterdir() if is_year_dir(path))
         for year_dir in year_dirs:
-            plans.extend(plans_for_directory(year_dir, args.format, args.legacy_transcribations))
+            plans.extend(
+                plans_for_directory(
+                    year_dir,
+                    args.format,
+                    args.legacy_transcribations,
+                    args.kind,
+                )
+            )
 
     for input_value in args.inputs:
         path = resolve_input(repo, input_value)
@@ -187,11 +252,23 @@ def collect_plans(args: argparse.Namespace, repo: Path) -> list[ExtractionPlan]:
             plans.append(
                 ExtractionPlan(
                     path,
-                    output_for_video(path, args.format, args.legacy_transcribations),
+                    output_for_video(
+                        path,
+                        args.format,
+                        args.legacy_transcribations,
+                        args.kind,
+                    ),
                 )
             )
         elif path.is_dir():
-            plans.extend(plans_for_directory(path, args.format, args.legacy_transcribations))
+            plans.extend(
+                plans_for_directory(
+                    path,
+                    args.format,
+                    args.legacy_transcribations,
+                    args.kind,
+                )
+            )
         else:
             raise SystemExit(f"Input does not exist: {path}")
 

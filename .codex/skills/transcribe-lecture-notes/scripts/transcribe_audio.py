@@ -13,12 +13,23 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_OPENAI_MODEL = "gpt-4o-mini-transcribe"
-DEFAULT_LANGUAGE = "ru"
 DEFAULT_MAX_REQUEST_BYTES = 25 * 1024 * 1024
 DEFAULT_CHUNK_SECONDS = 600
+DEFAULT_CIB_MAX_REQUEST_SECONDS = 3600
 DEFAULT_SPLIT_BITRATE = "64k"
 SPLIT_MODES = {"auto", "always", "never"}
+CIB_PROVIDER_NAME = "cib-llm-api"
+CIB_API_KEY_ENV_NAMES = ("CIB_LLM_API_KEY", "LLM_API_KEY")
+CIB_BASE_URL_ENV_NAMES = ("CIB_LLM_BASE_URL", "LLM_API_BASE_URL")
+CIB_MODEL_ENV_NAMES = ("CIB_LLM_TRANSCRIBE_MODEL", "LLM_TRANSCRIBE_MODEL")
+CIB_MAX_SECONDS_ENV_NAMES = (
+    "CIB_LLM_TRANSCRIBE_MAX_REQUEST_SECONDS",
+    "LLM_TRANSCRIBE_MAX_REQUEST_SECONDS",
+)
+CIB_CHUNK_SECONDS_ENV_NAMES = (
+    "CIB_LLM_TRANSCRIBE_CHUNK_SECONDS",
+    "LLM_TRANSCRIBE_CHUNK_SECONDS",
+)
 
 
 @dataclass(frozen=True)
@@ -43,19 +54,19 @@ def parse_args() -> argparse.Namespace:
         "--repo",
         type=Path,
         default=None,
-        help="Repository root. Used to load .env. Defaults to nearest parent with .git.",
+        help="Repository root. Used to resolve relative paths. Defaults to nearest parent with .git.",
     )
     parser.add_argument("--out", help="Output path for a single audio file.")
     parser.add_argument("--out-dir", help="Output directory for multiple transcripts.")
     parser.add_argument(
         "--language",
         default=None,
-        help="Language hint. Defaults to LECTURE_TRANSCRIBE_LANGUAGE or ru.",
+        help="Language hint. Defaults to LECTURE_TRANSCRIBE_LANGUAGE from .env.",
     )
     parser.add_argument(
         "--response-format",
-        default="text",
-        help="API response format. Use text for cleaned raw transcripts.",
+        default=None,
+        help="API response format. Defaults to LECTURE_TRANSCRIBE_RESPONSE_FORMAT from .env.",
     )
     parser.add_argument(
         "--overwrite",
@@ -71,8 +82,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--chunk-seconds",
         type=int,
-        default=DEFAULT_CHUNK_SECONDS,
-        help="Seconds per local ffmpeg chunk.",
+        default=None,
+        help=(
+            "Seconds per local ffmpeg chunk. Defaults to 600, or to the CIB "
+            "duration limit when the CIB LLM API provider is selected."
+        ),
     )
     parser.add_argument(
         "--split-bitrate",
@@ -82,10 +96,32 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-request-bytes",
         type=int,
-        default=DEFAULT_MAX_REQUEST_BYTES,
-        help="Split audio above this request size unless --split-mode never.",
+        default=None,
+        help=(
+            "Split audio above this request size unless --split-mode never. "
+            "Defaults to 25 MiB for non-CIB providers and is disabled for CIB LLM API."
+        ),
+    )
+    parser.add_argument(
+        "--cib-max-request-seconds",
+        type=int,
+        default=None,
+        help=(
+            "CIB LLM API maximum audio duration per transcription request. "
+            "Defaults to 3600 seconds when the CIB provider is selected."
+        ),
+    )
+    parser.add_argument(
+        "--cib-chunk-seconds",
+        type=int,
+        default=None,
+        help=(
+            "Seconds per local ffmpeg chunk for CIB LLM API. Defaults to the "
+            "CIB request duration limit."
+        ),
     )
     parser.add_argument("--ffmpeg", help="Optional ffmpeg executable path.")
+    parser.add_argument("--ffprobe", help="Optional ffprobe executable path.")
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -110,49 +146,86 @@ def resolve_repo(repo_arg: Path | None) -> Path:
     return find_repo_root(Path.cwd())
 
 
-def load_dotenv(repo: Path) -> dict[str, str]:
-    env_path = repo / ".env"
-    values: dict[str, str] = {}
-    if not env_path.exists():
-        return values
-
-    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip("'").strip('"')
-        if key:
-            values[key] = value
-    return values
+def config_value(name: str) -> str:
+    return os.environ.get(name, "")
 
 
-def config_value(name: str, dotenv: dict[str, str]) -> str:
-    return os.getenv(name) or dotenv.get(name, "")
+def first_config_value(names: tuple[str, ...]) -> str:
+    for name in names:
+        value = config_value(name)
+        if value:
+            return value
+    return ""
 
 
-def resolve_provider(dotenv: dict[str, str]) -> Provider:
-    openai_key = config_value("OPENAI_API_KEY", dotenv)
+def first_int_config_value(names: tuple[str, ...]) -> int | None:
+    raw_value = first_config_value(names)
+    if not raw_value:
+        return None
+    try:
+        return int(raw_value)
+    except ValueError:
+        die(f"{', '.join(names)} must be an integer when set.")
+
+
+def normalize_base_url(value: str) -> str:
+    base_url = value.strip().rstrip("/")
+    audio_suffix = "/audio/transcriptions"
+    if base_url.endswith(audio_suffix):
+        return base_url[: -len(audio_suffix)].rstrip("/")
+    return base_url
+
+
+def require_config(name: str, provider_name: str) -> str:
+    value = config_value(name)
+    if not value:
+        die(f"{provider_name} is selected but {name} is missing from the environment.")
+    return value
+
+
+def require_first_config(names: tuple[str, ...], provider_name: str) -> str:
+    value = first_config_value(names)
+    if not value:
+        die(
+            f"{provider_name} is selected but one of {', '.join(names)} is missing "
+            "from the environment."
+        )
+    return value
+
+
+def resolve_provider() -> Provider:
+    openai_key = config_value("OPENAI_API_KEY")
     if openai_key:
-        model = config_value("OPENAI_TRANSCRIBE_MODEL", dotenv) or DEFAULT_OPENAI_MODEL
+        model = require_config("OPENAI_TRANSCRIBE_MODEL", "OpenAI")
         return Provider("openai", openai_key, model, None)
 
-    compatible_key = config_value("OPENAI_COMPATIBLE_API_KEY", dotenv)
-    compatible_base_url = config_value("OPENAI_COMPATIBLE_BASE_URL", dotenv)
-    compatible_model = config_value("OPENAI_COMPATIBLE_TRANSCRIBE_MODEL", dotenv)
+    cib_key = first_config_value(CIB_API_KEY_ENV_NAMES)
+    if cib_key:
+        cib_base_url = require_first_config(CIB_BASE_URL_ENV_NAMES, "CIB LLM API")
+        cib_model = require_first_config(CIB_MODEL_ENV_NAMES, "CIB LLM API")
+        return Provider(
+            CIB_PROVIDER_NAME,
+            cib_key,
+            cib_model,
+            normalize_base_url(cib_base_url),
+        )
+
+    compatible_key = config_value("OPENAI_COMPATIBLE_API_KEY")
+    compatible_base_url = config_value("OPENAI_COMPATIBLE_BASE_URL")
+    compatible_model = config_value("OPENAI_COMPATIBLE_TRANSCRIBE_MODEL")
     if compatible_key and compatible_base_url and compatible_model:
         return Provider(
             "openai-compatible",
             compatible_key,
             compatible_model,
-            compatible_base_url,
+            normalize_base_url(compatible_base_url),
         )
 
     die(
-        "No transcription provider configured. Set OPENAI_API_KEY, or set "
+        "No transcription provider configured. Set OPENAI_API_KEY, set "
+        "CIB_LLM_API_KEY for the CIB LLM API fallback, or set "
         "OPENAI_COMPATIBLE_API_KEY, OPENAI_COMPATIBLE_BASE_URL, and "
-        "OPENAI_COMPATIBLE_TRANSCRIBE_MODEL in .env."
+        "OPENAI_COMPATIBLE_TRANSCRIBE_MODEL for a custom compatible provider."
     )
 
 
@@ -192,12 +265,98 @@ def output_for_audio(audio_path: Path, args: argparse.Namespace, repo: Path) -> 
     return out_dir / f"{audio_path.stem}.transcript.txt"
 
 
-def should_split(path: Path, args: argparse.Namespace) -> bool:
+def apply_provider_defaults(args: argparse.Namespace, provider: Provider) -> None:
+    if provider.name == CIB_PROVIDER_NAME:
+        if args.cib_max_request_seconds is None:
+            max_seconds = first_int_config_value(CIB_MAX_SECONDS_ENV_NAMES)
+            args.cib_max_request_seconds = (
+                max_seconds
+                if max_seconds is not None
+                else DEFAULT_CIB_MAX_REQUEST_SECONDS
+            )
+        if args.cib_chunk_seconds is None:
+            chunk_seconds = first_int_config_value(CIB_CHUNK_SECONDS_ENV_NAMES)
+            args.cib_chunk_seconds = (
+                chunk_seconds
+                if chunk_seconds is not None
+                else args.cib_max_request_seconds
+            )
+        if args.chunk_seconds is None:
+            args.chunk_seconds = args.cib_chunk_seconds
+        return
+
+    if args.chunk_seconds is None:
+        args.chunk_seconds = DEFAULT_CHUNK_SECONDS
+    if args.max_request_bytes is None:
+        args.max_request_bytes = DEFAULT_MAX_REQUEST_BYTES
+
+
+def validate_positive(value: int | None, option_name: str) -> None:
+    if value is not None and value <= 0:
+        die(f"{option_name} must be positive.")
+
+
+def find_ffprobe(args: argparse.Namespace) -> str:
+    candidates = [args.ffprobe]
+    if args.ffmpeg:
+        candidates.append(str(Path(args.ffmpeg).with_name("ffprobe")))
+    candidates.append(shutil.which("ffprobe"))
+    for candidate in candidates:
+        if candidate:
+            return candidate
+    return ""
+
+
+def audio_duration_seconds(path: Path, args: argparse.Namespace) -> float:
+    ffprobe = find_ffprobe(args)
+    if not ffprobe:
+        die("ffprobe was not found on PATH; install ffprobe or pass --ffprobe.")
+
+    command = [
+        ffprobe,
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "json",
+        str(path),
+    ]
+    result = subprocess.run(command, check=False, capture_output=True, text=True)
+    if result.returncode != 0:
+        die(f"ffprobe failed for {path}: {result.stderr.strip()}")
+
+    try:
+        duration = float(json.loads(result.stdout)["format"]["duration"])
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        die(f"Could not read audio duration from ffprobe output for {path}: {exc}")
+    if duration <= 0:
+        die(f"ffprobe returned a non-positive duration for {path}: {duration}")
+    return duration
+
+
+def cib_duration_limit(provider: Provider, args: argparse.Namespace) -> int | None:
+    if provider.name != CIB_PROVIDER_NAME:
+        return None
+    return args.cib_max_request_seconds
+
+
+def should_split(path: Path, provider: Provider, args: argparse.Namespace) -> bool:
     if args.split_mode == "always":
         return True
     if args.split_mode == "never":
         return False
-    return path.stat().st_size > args.max_request_bytes
+
+    if (
+        args.max_request_bytes is not None
+        and path.stat().st_size > args.max_request_bytes
+    ):
+        return True
+
+    duration_limit = cib_duration_limit(provider, args)
+    if duration_limit is None:
+        return False
+    return audio_duration_seconds(path, args) > duration_limit
 
 
 def find_ffmpeg(args: argparse.Namespace) -> str:
@@ -243,9 +402,11 @@ def split_audio(path: Path, args: argparse.Namespace, work_dir: Path) -> list[Pa
     chunks = sorted(chunk_dir.glob("chunk_*.mp3"))
     if not chunks:
         die(f"ffmpeg produced no chunks for {path}")
-    oversized = [
-        chunk for chunk in chunks if chunk.stat().st_size > args.max_request_bytes
-    ]
+    oversized = (
+        []
+        if args.max_request_bytes is None
+        else [chunk for chunk in chunks if chunk.stat().st_size > args.max_request_bytes]
+    )
     if oversized:
         die("Generated chunks exceed the request size; reduce --chunk-seconds.")
     return chunks
@@ -274,10 +435,9 @@ def format_result(result: Any) -> str:
 
 
 def transcribe_one(client: Any, audio_path: Path, provider: Provider, args: argparse.Namespace) -> str:
-    payload: dict[str, Any] = {
-        "model": provider.model,
-        "response_format": args.response_format,
-    }
+    payload: dict[str, Any] = {"model": provider.model}
+    if args.response_format:
+        payload["response_format"] = args.response_format
     if args.language:
         payload["language"] = args.language
 
@@ -287,7 +447,7 @@ def transcribe_one(client: Any, audio_path: Path, provider: Provider, args: argp
 
 
 def transcribe_audio(client: Any, audio_path: Path, provider: Provider, args: argparse.Namespace) -> str:
-    if not should_split(audio_path, args):
+    if not should_split(audio_path, provider, args):
         return transcribe_one(client, audio_path, provider, args)
 
     with tempfile.TemporaryDirectory(prefix="lecture_transcribe_chunks_") as tmp_name:
@@ -301,17 +461,20 @@ def transcribe_audio(client: Any, audio_path: Path, provider: Provider, args: ar
 
 def main() -> int:
     args = parse_args()
-    if args.chunk_seconds <= 0:
-        die("--chunk-seconds must be positive.")
-    if args.max_request_bytes <= 0:
-        die("--max-request-bytes must be positive.")
 
     repo = resolve_repo(args.repo)
-    dotenv = load_dotenv(repo)
     if args.language is None:
-        args.language = config_value("LECTURE_TRANSCRIBE_LANGUAGE", dotenv) or DEFAULT_LANGUAGE
+        args.language = config_value("LECTURE_TRANSCRIBE_LANGUAGE") or None
+    if args.response_format is None:
+        args.response_format = config_value("LECTURE_TRANSCRIBE_RESPONSE_FORMAT") or None
 
-    provider = resolve_provider(dotenv)
+    provider = resolve_provider()
+    apply_provider_defaults(args, provider)
+    validate_positive(args.chunk_seconds, "--chunk-seconds")
+    validate_positive(args.max_request_bytes, "--max-request-bytes")
+    validate_positive(args.cib_max_request_seconds, "--cib-max-request-seconds")
+    validate_positive(args.cib_chunk_seconds, "--cib-chunk-seconds")
+
     audio_paths = [resolve_audio(value, repo) for value in args.audio]
     output_paths = [output_for_audio(path, args, repo) for path in audio_paths]
 
@@ -323,12 +486,15 @@ def main() -> int:
             "api_key": mask_key(provider.api_key),
         },
         "language": args.language,
+        "chunk_seconds": args.chunk_seconds,
+        "max_request_bytes": args.max_request_bytes,
+        "cib_max_request_seconds": cib_duration_limit(provider, args),
         "items": [
             {
                 "audio": str(audio),
                 "output": str(output),
                 "size": audio.stat().st_size,
-                "split": should_split(audio, args),
+                "split": should_split(audio, provider, args),
             }
             for audio, output in zip(audio_paths, output_paths)
         ],
