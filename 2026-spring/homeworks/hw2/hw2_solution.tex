@@ -1,0 +1,347 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\eps}{\varepsilon}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% компактный заголовок пункта с отступом снизу
+\newcommand{\step}[1]{\medskip\noindent\textbf{#1}\par\nobreak\vspace{2pt}}
+
+\title{ДЗ 2 --- решебник для ассистентов}
+\author{Анализ временных рядов, ВШЭ, весна 2026}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\textbf{Разбалловка.}\\[4pt]
+\begin{tabular}{@{}l|cccc|c@{}}
+\toprule
+Задача & (a) & (b) & (c) & (d) & \textbf{Итого} \\
+\midrule
+1 --- Белый шум            & \multicolumn{4}{c|}{\(15\)} & \(15\) \\
+2 --- AR(1), \(|\varphi|<1\) & 10 & 5  & 10 & ---   & \(25\) \\
+3 --- AR(1), \(|\varphi|>1\) & 15 & 15 & ---& ---   & \(30\) \\
+4 --- ETS\((A,A_d,N)\)        & 10 & 15 & 5  & ---   & \(30\) \\
+5 --- GARCH / IGARCH          & 5  & 10 & 5  & 10    & \(30\) \\
+\midrule
+\multicolumn{5}{r|}{\textbf{Всего за работу:}} & \(\mathbf{130}\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%==================================================================
+\section*{Задача 1. Белый шум \texorpdfstring{$Z_t=b_tX_t$}{} \hfill \normalsize[15 баллов]}
+
+Нужно проверить три условия:
+\[
+\E Z_t=0,\qquad \Var Z_t=\mathrm{const}<\infty,\qquad \Cov(Z_t,Z_{t+k})=0.
+\]
+
+\step{Среднее.}
+\[
+\E Z_t=b_t(2p-1)=0 \;\Longrightarrow\; p=\tfrac12,
+\]
+так как \(b_t>0\).
+
+\step{Дисперсия.}
+При \(p=1/2\) имеем \(\Var X_t=1\), поэтому \(\Var Z_t=b_t^{\,2}\). Для постоянства дисперсии нужно
+\[
+b_t=b=\mathrm{const}.
+\]
+При адаптивной \(b_t\) дисперсия случайна --- получаем мартингальную разность, но не WN.
+
+\step{Некоррелированность.}
+При \(b_t=b\) процесс \(bX_t\) наследует i.i.d.\ --- выполнено автоматически.
+
+\step{Ответ.}
+\[
+\boxed{\;\{Z_t\}\sim\mathrm{WN}(0,b^2)\ \Longleftrightarrow\ p=\tfrac12\ \text{и}\ b_t=b=\mathrm{const}\;}
+\]
+
+%==================================================================
+\section*{Задача 2. AR(1), \texorpdfstring{$0<\varphi<1$}{0<phi<1} \hfill \normalsize[25 баллов]}
+
+\step{(a) Стационарное решение. \hfill [10 баллов]}
+В лаговой форме \((1-\varphi L)y_t=\eps_t\). При \(|\varphi|<1\) оператор обратим в прошлое:
+\[
+y_t=(1-\varphi L)^{-1}\eps_t=\sum_{j\ge 0}\varphi^{j}L^{j}\eps_t
+=\boxed{\sum_{j=0}^{\infty}\varphi^{j}\eps_{t-j}}
+\]
+Моменты:\ \(\E y_t=0,\ \ \Var y_t=\sigma^2/(1-\varphi^2)\).
+
+\step{(b) Одиночный шок \(\eps_T\to\eps_T+1\). \hfill [5 баллов]}
+Из представления MA\((\infty)\) шок \(\eps_T\) входит в \(y_{T+h}\) с весом \(\varphi^h\), поэтому
+\[
+\boxed{\;\Delta_h=\varphi^{h}\;}
+\]
+--- геометрическое затухание к нулю.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11cm,height=5.2cm,
+  xlabel={\(h\)},ylabel={\(\Delta_h\)},
+  xmin=-0.3,xmax=10.3,ymin=0,ymax=1.1,
+  xtick={0,1,...,10},
+  ytick={0,0.25,0.5,0.75,1},
+  grid=both,grid style={gray!20},
+  axis lines=left,
+  title={\small IRF одиночного шока: \(\Delta_h=\varphi^h\) (показано для \(\varphi=0.5;\,0.7;\,0.9\))},
+]
+\addplot+[mark=*,thick,color=blue!70!black] coordinates
+  {(0,1)(1,0.5)(2,0.25)(3,0.125)(4,0.0625)(5,0.03125)(6,0.01563)(7,0.00781)(8,0.00391)(9,0.00195)(10,0.00098)};
+\addlegendentry{$\varphi=0.5$}
+\addplot+[mark=square*,thick,color=orange!80!black] coordinates
+  {(0,1)(1,0.7)(2,0.49)(3,0.343)(4,0.2401)(5,0.16807)(6,0.11765)(7,0.08235)(8,0.05765)(9,0.04035)(10,0.02825)};
+\addlegendentry{$\varphi=0.7$}
+\addplot+[mark=triangle*,thick,color=red!70!black] coordinates
+  {(0,1)(1,0.9)(2,0.81)(3,0.729)(4,0.6561)(5,0.59049)(6,0.53144)(7,0.47830)(8,0.43047)(9,0.38742)(10,0.34868)};
+\addlegendentry{$\varphi=0.9$}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\step{(c) Постоянный сдвиг \(\eps_t\to\eps_t+1,\ t\ge T\). \hfill [10 баллов]}
+Кумулятивный эффект:
+\[
+\Gamma_h=\sum_{k=0}^{h}\varphi^{k}=\frac{1-\varphi^{h+1}}{1-\varphi}\xrightarrow{h\to\infty}\boxed{\frac{1}{1-\varphi}}
+\]
+Это долгосрочный мультипликатор.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11cm,height=5.2cm,
+  xlabel={\(h\)},ylabel={\(\Gamma_h\)},
+  xmin=-0.3,xmax=15.3,ymin=0,ymax=11,
+  xtick={0,2,...,14},
+  ytick={0,2,...,10},
+  grid=both,grid style={gray!20},
+  axis lines=left,
+  legend pos=south east,
+  title={\small Кумулятивная IRF \(\Gamma_h=(1-\varphi^{h+1})/(1-\varphi)\), предел \(1/(1-\varphi)\)},
+]
+% phi=0.5, limit=2
+\addplot+[mark=*,thick,color=blue!70!black] coordinates
+  {(0,1)(1,1.5)(2,1.75)(3,1.875)(4,1.9375)(5,1.9688)(6,1.9844)(7,1.9922)(8,1.9961)(9,1.998)(10,1.999)(12,1.9998)(14,2)};
+\addlegendentry{$\varphi=0.5$, предел $2$}
+\addplot+[dashed,color=blue!70!black,forget plot] coordinates {(0,2)(15,2)};
+% phi=0.7, limit=3.33
+\addplot+[mark=square*,thick,color=orange!80!black] coordinates
+  {(0,1)(1,1.7)(2,2.19)(3,2.533)(4,2.773)(5,2.941)(6,3.059)(7,3.141)(8,3.199)(9,3.239)(10,3.267)(12,3.302)(14,3.319)};
+\addlegendentry{$\varphi=0.7$, предел $10/3$}
+\addplot+[dashed,color=orange!80!black,forget plot] coordinates {(0,3.333)(15,3.333)};
+% phi=0.9, limit=10
+\addplot+[mark=triangle*,thick,color=red!70!black] coordinates
+  {(0,1)(1,1.9)(2,2.71)(3,3.439)(4,4.095)(5,4.686)(6,5.217)(7,5.695)(8,6.126)(9,6.513)(10,6.862)(12,7.458)(14,7.938)};
+\addlegendentry{$\varphi=0.9$, предел $10$}
+\addplot+[dashed,color=red!70!black,forget plot] coordinates {(0,10)(15,10)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+%==================================================================
+\section*{Задача 3. AR(1) с константой, \texorpdfstring{$|\varphi|>1$}{|phi|>1} \hfill \normalsize[30 баллов]}
+
+\step{(a) Стационарное решение. \hfill [15 баллов]}
+Уравнение: \((1-\varphi L)y_t=c+\eps_t\). При \(|\varphi|>1\) ряд \((1-\varphi L)^{-1}=\sum\varphi^j L^j\) расходится --- значит, инвертируем оператор \emph{вперёд}. Используя \(L^{-1}=F\):
+\[
+1-\varphi L=-\varphi L\bigl(1-\varphi^{-1}F\bigr),
+\]
+\[
+(1-\varphi L)^{-1}=-\varphi^{-1}F\sum_{j\ge 0}\varphi^{-j}F^{j}
+=-\sum_{k\ge 1}\varphi^{-k}F^{k}.
+\]
+Применяем к правой части \(c+\eps_t\) (с учётом \(F^{k}c=c\) и \(-c\sum_{k\ge 1}\varphi^{-k}=c/(1-\varphi)\)):
+\[
+\boxed{\;y_t=\frac{c}{1-\varphi}-\sum_{j=1}^{\infty}\varphi^{-j}\eps_{t+j}\;}
+\]
+
+\step{Проверка стационарности.}
+\[
+\E y_t=\frac{c}{1-\varphi},\qquad
+\Var y_t=\frac{\sigma^2}{\varphi^2-1},\qquad
+\gamma(k)=\frac{\sigma^2\,\varphi^{-|k|}}{\varphi^2-1}.
+\]
+Зависит только от лага. \checkmark
+
+\step{(b) Разложение Вольда. \hfill [15 баллов]}
+Теорема Вольда: любой стационарный процесс представим в виде
+\[
+y_t=d_t+\sum_{j\ge 0}\psi_j\eta_{t-j},
+\]
+где \(\eta_t\) --- инновации из \emph{прошлого}. Решение (a) записано через \emph{будущие} шоки, поэтому формально корректное Вольдово разложение получается разворотом времени. Положим
+\[
+\tau=-t,\qquad \widetilde y_\tau=y_{-\tau},\qquad \widetilde\eps_\tau=\eps_{-\tau}.
+\]
+Тогда
+\[
+\widetilde y_\tau=\frac{c}{1-\varphi}-\sum_{j=1}^{\infty}\varphi^{-j}\widetilde\eps_{\tau-j},
+\qquad d=\frac{c}{1-\varphi},\quad\psi_j=-\varphi^{-j}.
+\]
+Прогнозируемая часть --- константа \(d=c/(1-\varphi)\). MA\((\infty)\)-коэффициенты суммируемы, так как \(|\varphi|^{-1}<1\).
+
+\step{Важное замечание.}
+Теорема о корнях лагового полинома утверждает: при \(|\varphi|>1\) корень \(z_0=1/\varphi\) лежит \emph{внутри} единичного круга, и поэтому у исходного уравнения \emph{не существует} каузального MA\((\infty)\) представления через прошлые \(\eps_t\) --- именно тот белый шум, что в правой части уравнения, не порождает процесс причинно. Однако теорема Вольда не требует, чтобы разложение шло через \emph{те же} \(\eps_t\): она гарантирует существование MA\((\infty)\) через \emph{какой-то} белый шум из прошлого --- инновации \(\eta_t=y_t-\widehat y_{t\mid t-1}\). В частности, стационарное \(y_t\) с \(\gamma(k)=\sigma^2\varphi^{-|k|}/(\varphi^2-1)\) допускает \emph{каузальное} AR(1) представление
+\[
+y_t=\tfrac{c}{1-\varphi}\cdot(1-\tfrac{1}{\varphi})+\tfrac{1}{\varphi}\,y_{t-1}+\eta_t,
+\qquad \eta_t\sim\mathrm{WN}\bigl(0,\sigma^2/\varphi^2\bigr),
+\]
+с корнем \emph{вне} единичного круга; отсюда по обычной схеме (2a) --- MA\((\infty)\) через прошлые \(\eta_t\). Итого: запрет касается \emph{конкретного} белого шума \(\eps_t\), а не самого факта Вольдова разложения.
+
+%==================================================================
+\section*{Задача 4. ETS\texorpdfstring{$(A,A_d,N)$}{(A,Ad,N)} \hfill \normalsize[30 баллов]}
+
+Параметры: \(\alpha=0.4,\ \beta=0.2,\ \phi=0.5,\ \sigma^2=4,\ l_T=100,\ b_T=10.\)
+
+\step{(a) Точечный прогноз. \hfill [10 баллов]}
+При \(\E\eps_{T+k}=0\) итерирование уравнений состояния даёт
+\[
+\widehat y_{T+h|T}=l_T+\Bigl(\sum_{i=1}^{h}\phi^{\,i}\Bigr)b_T
+=l_T+\phi\,\frac{1-\phi^{h}}{1-\phi}\,b_T
+=100+10(1-0.5^{h}).
+\]
+При \(h=3\):
+\[
+\widehat y_{T+3|T}=100+10\cdot 0.875=\mathbf{108.75}.
+\]
+Предел:
+\[
+\lim_{h\to\infty}\widehat y_{T+h|T}=l_T+\frac{\phi}{1-\phi}\,b_T=\mathbf{110}.
+\]
+
+\step{(b) Дисперсия ошибки прогноза. \hfill [15 баллов]}
+Ошибка \(h\)-шагового прогноза:
+\[
+e_h=y_{T+h}-\widehat y_{T+h|T}=\eps_{T+h}+\sum_{j=1}^{h-1}c_j\,\eps_{T+h-j},
+\]
+где коэффициенты разложения
+\[
+c_j=\alpha+\beta\sum_{i=1}^{j}\phi^{\,i}
+=\alpha+\frac{\beta\phi(1-\phi^{j})}{1-\phi}
+=0.6-0.2\cdot 0.5^{j}.
+\]
+В частности \(c_1=0.5,\ c_2=0.55\). Тогда
+\[
+\sigma^2_h=\sigma^2\Bigl(1+\sum_{j=1}^{h-1}c_j^{2}\Bigr),
+\qquad
+\sigma^2_3=4(1+0.25+0.3025)=\mathbf{6.21},\quad \sigma_3\approx\mathbf{2.492}.
+\]
+Предел: \(c_j\to 0.6\ne 0\), поэтому ряд расходится, и
+\[
+\sigma^2_h\sim 0.36\,\sigma^2\,h=1.44\,h\xrightarrow{h\to\infty}\infty.
+\]
+
+\step{(c) 95\% интервальный прогноз при \(h=3\). \hfill [5 баллов]}
+\[
+108.75\pm 1.96\cdot 2.492=108.75\pm 4.884
+\;\;\Longrightarrow\;\;
+\boxed{\;[\,103.87;\ 113.63\,]\;}
+\]
+
+%==================================================================
+\section*{Задача 5. GARCH(1,1) vs.\ IGARCH \hfill \normalsize[30 баллов]}
+
+\textbf{Параметры.}
+
+\begin{center}
+\begin{tabular}{@{}l|ccc|c@{}}
+\toprule
+Модель & \(\omega\) & \(\alpha\) & \(\beta\) & \(\alpha+\beta\) \\
+\midrule
+А (спокойный) & 2 & 0.3 & 0.6 & 0.9 \\
+Б (турбулентный) & 2 & 0.3 & 0.7 & 1.0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Начальное условие \(\sigma^2_T=5\).
+
+\step{(a) Безусловная дисперсия. \hfill [5 баллов]}
+В стационаре
+\[
+\bar\sigma^2=\omega+(\alpha+\beta)\bar\sigma^2
+\;\Longrightarrow\;
+\bar\sigma^2=\frac{\omega}{1-\alpha-\beta}.
+\]
+\emph{Модель А:}\ \(\bar\sigma^2=2/0.1=\mathbf{20}\).
+
+\emph{Модель Б:}\ знаменатель равен 0, \(\bar\sigma^2=\infty\) --- IGARCH, равновесия волатильности нет.
+
+\step{(b) \(h\)-шаговый прогноз. \hfill [10 баллов]}
+Линейная рекуррентность \(f_h=\omega+(\alpha+\beta)f_{h-1},\ f_0=\sigma^2_T\). В лаговой форме
+\[
+\bigl(1-(\alpha+\beta)L_h\bigr)f_h=\omega.
+\]
+Общее решение ---
+стационарная часть плюс затухающая мода:
+\[
+f_h=\bar\sigma^2+\bigl(\sigma^2_T-\bar\sigma^2\bigr)(\alpha+\beta)^{h}.
+\]
+
+\emph{Модель А:} \(f_h^A=20-15\cdot 0.9^{h}\).
+
+\emph{Модель Б:} рекуррентность вырождается в \(f_h=\omega+f_{h-1}\), откуда \(f_h^B=\sigma^2_T+\omega h=5+2h\).
+
+\begin{center}
+\begin{tabular}{@{}l|ccc@{}}
+\toprule
+\(h\) & 1 & 5 & 20 \\
+\midrule
+\(f_h^A\) & 6.500 & 11.143 & 18.177 \\
+\(f_h^B\) & 7\phantom{.000} & 15\phantom{.000} & 45\phantom{.000} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\step{(c) Пределы и интерпретация. \hfill [5 баллов]}
+\[
+f_h^A\to 20,\qquad f_h^B\to\infty.
+\]
+В А волатильность --- mean-reverting: прогноз возвращается к равновесному уровню. В Б равновесия нет --- любой прошлый шок встраивается в дисперсию навсегда, ``успокоившегося рынка'' в этой модели не бывает.
+
+\step{(d) IRF дисперсии. \hfill [10 баллов]}
+Шок \(\Delta y_T^2=1\) входит в \(f_1\) через слагаемое \(\alpha y_T^2\), далее на каждом шаге умножается на \((\alpha+\beta)\):
+\[
+\boxed{\;\delta_h=\alpha(\alpha+\beta)^{h-1}\;}
+\]
+
+\emph{Модель А:}\ \(\delta_h=0.3\cdot 0.9^{h-1}\).
+
+\emph{Модель Б:}\ \(\delta_h=0.3\) для всех \(h\).
+
+\begin{center}
+\begin{tabular}{@{}l|cccc@{}}
+\toprule
+\(h\) & 1 & 2 & 5 & \(\infty\) \\
+\midrule
+\(\delta_h^A\) & 0.300 & 0.270 & 0.197 & 0\phantom{.000} \\
+\(\delta_h^B\) & 0.300 & 0.300 & 0.300 & 0.300 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+В А шок геометрически затухает --- рынок ``переваривает''. В Б IRF горизонтален --- единичный корень в волатильности.
+
+\end{document}

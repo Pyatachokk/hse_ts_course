@@ -94,5 +94,6 @@ Read the existing `.py` and view the existing PNG before changing anything. Make
 
 - The active period is the newest `20??-spring` or `20??-fall` directory containing `lectures/ts_notes/ts_notes.tex`.
 - Captions and axis labels should be Russian unless the user asks otherwise.
+- Legend labels, plot titles, subplot titles, and axis titles must start with a capital letter.
 - File slugs are English `snake_case`.
 - The skill validates `kaleido`/Plotly export but does not install dependencies.

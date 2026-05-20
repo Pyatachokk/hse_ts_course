@@ -1,5 +1,13 @@
 # Agent Instructions
 
+## Editing `ts_notes`
+
+In `*/lectures/ts_notes/chapters/*.tex`, keep prose easy to edit in diffs:
+put each new sentence on a new physical line in the `.tex` file.
+Do not reflow whole paragraphs into single long lines.
+For Russian-language prose, use Russian guillemets (`«ёлочки»`) for quotation marks.
+Do not use straight double quotes (`"пример"`) or English curly quotes in visible Russian text.
+
 ## Repository Codex Skills
 
 This repository ships Codex skills at:
