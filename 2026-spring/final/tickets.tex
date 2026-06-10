@@ -1,0 +1,123 @@
+% arara: xelatex
+\documentclass[12pt]{article}
+
+\usepackage{physics}
+\usepackage{microtype}
+\usepackage{array}
+\usepackage{indentfirst}
+\usepackage{sectsty}
+\allsectionsfont{\centering}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{comment}
+\usepackage[top=2cm, left=1.2cm, right=1.2cm, bottom=2cm]{geometry}
+\usepackage{lastpage}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+
+\setmainlanguage{russian}
+\setotherlanguages{english}
+\setmainfont{Arial}
+\setlength{\headheight}{15pt}
+
+\pagestyle{fancy}
+\lhead{Временные ряды}
+\chead{}
+\rhead{Экзаменационные билеты}
+\lfoot{}
+\cfoot{DON'T PANIC}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ}
+\setlist[enumerate, 2]{label=\asbuk*),ref=\asbuk*}
+
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Corr}{\mathbb{C}orr}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+\let\P\relax
+\DeclareMathOperator{\P}{\mathbb{P}}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\plim}{plim}
+
+\newcommand \hb{\hat{\beta}}
+\newcommand \hs{\hat{\sigma}}
+\newcommand \htheta{\hat{\theta}}
+\newcommand \s{\sigma}
+\newcommand \hy{\hat{y}}
+\newcommand \hY{\hat{Y}}
+\newcommand \e{\varepsilon}
+\newcommand \he{\hat{\e}}
+\newcommand \z{z}
+\newcommand \hVar{\widehat{\Var}}
+\newcommand \hCorr{\widehat{\Corr}}
+\newcommand \hCov{\widehat{\Cov}}
+\newcommand \cN{\mathcal{N}}
+\newcommand \RR{\mathbb{R}}
+\newcommand \NN{\mathbb{N}}
+\newcommand{\cF}{\mathcal{F}}
+
+\begin{document}
+
+\section*{Экзаменационные билеты}
+
+\begin{enumerate}
+
+    \item \textbf{Билет 1.}
+    \begin{enumerate}
+        \item Аддитивная и мультипликативная ETS. Связь аддитивной модели и мультипликативной через логарифмирование. Правдоподобие ETS.
+    \end{enumerate}
+
+    \item \textbf{Билет 2.}
+    \begin{enumerate}
+        \item Дивергенция Кульбака-Лейблера. Критерий Акаике. Как AIC помогает приближать истинную модель? Критерии применимости AIC (при каких условиях применение AIC может привести к неверным выводам?).
+    \end{enumerate}
+
+    \item \textbf{Билет 3.}
+    \begin{enumerate}
+        \item Белый шум. Стационарность. Автокорреляция и частная автокорреляция. Метод Юла-Волкера.
+    \end{enumerate}
+
+    \item \textbf{Билет 4.}
+    \begin{enumerate}
+        \item Разница между процессом и уравнением. AR(p)-процесс. Теорема о корнях лагового полинома. Стационарность и обратимость.
+    \end{enumerate}
+
+    \item \textbf{Билет 5.}
+    \begin{enumerate}
+        \item Нестационарность. Порядок интеграции. Теорема Вольда. Детерминированный и стохастический тренд.
+    \end{enumerate}
+
+    \item \textbf{Билет 6.}
+    \begin{enumerate}
+        \item ARCH-GARCH-процесс. Стационарность. Условная и безусловная дисперсия. Прогнозирование.
+    \end{enumerate}
+
+    \item \textbf{Билет 7.}
+    \begin{enumerate}
+        \item Копулы. Архимедовы копулы. Эллиптические копулы. Применения к расчёту риск-метрик.
+    \end{enumerate}
+
+    \item \textbf{Билет 8.}
+    \begin{enumerate}
+        \item Сведение к табличной задаче. Инжиниринг переменных. Борьба с утечками. Стратегии прогнозирования.
+    \end{enumerate}
+
+    \item \textbf{Билет 9.}
+    \begin{enumerate}
+        \item STL, MSTL. Общий алгоритм, особенности настройки. Применение к прогнозированию.
+    \end{enumerate}
+
+    \item \textbf{Билет 10.}
+    \begin{enumerate}
+        \item RNN, LSTM, GRU. Эволюция архитектур, особенности, преимущества и недостатки.
+    \end{enumerate}
+
+\end{enumerate}
+
+\end{document}
