@@ -16,3 +16,5 @@ venv
 *.synctex.gz
 *.DS_Store
 *m4a
+*.fls
+*.fdb_latexmk

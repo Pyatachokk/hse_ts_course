@@ -1219,8 +1219,544 @@ Multivariate ряд & Scaler по каждой переменной & Не см�
 Если распределение заметно меняется во времени, полезно добавить causal window normalization или RevIN-подобный слой.
 Во всех случаях scaler, обратное преобразование и validation protocol должны быть частью одного воспроизводимого pipeline, а не отдельной ручной операцией после обучения.
 
+% \subsection{CNN}
+%
+% Свёрточные сети для временных рядов можно понимать как нейросетевое обобщение лаговых признаков.
+% В табличном подходе мы заранее выбираем окно
+% \begin{equation}
+%   x_t = (y_{t-k+1},\ldots,y_t)
+% \end{equation}
+% и передаём его в регрессию, бустинг или MLP.
+% При этом каждая координата окна становится отдельным признаком.
+% Модель видит лаги, но не получает встроенного предположения о том, что соседние лаги образуют локальные паттерны.
+%
+% Свёртка добавляет именно это предположение.
+% Она берёт небольшой фрагмент окна и применяет к нему один и тот же обучаемый фильтр во всех позициях.
+% Поэтому 1D convolution можно воспринимать как скользящий обучаемый фильтр, или как детектор локального паттерна.
+% Если в разных местах ряда возникает похожий короткий фрагмент, один и тот же фильтр может дать сильную активацию в разных временных позициях.
+% Это похоже на то, как в computer vision один фильтр может находить край или текстуру в разных частях изображения.
+%
+% \begin{figure}[H]
+% \centering
+% \begin{tikzpicture}[x=0.82cm,y=0.7cm,every node/.style={font=\small}]
+%   \foreach \i/\lab in {0/{$x_1$},1/{$x_2$},2/{$x_3$},5/{$x_5$},6/{$x_6$},7/{$x_7$}} {
+%     \node[draw,minimum width=0.70cm,minimum height=0.50cm,fill=gray!8] at (\i,0) {\lab};
+%   }
+%   \draw[thick,blue,rounded corners=2pt] (-0.35,-0.35) rectangle (2.35,0.35);
+%   \draw[thick,blue,rounded corners=2pt] (4.65,-0.35) rectangle (7.35,0.35);
+%   \node[blue,anchor=south] at (1,0.45) {$w_0,w_1,w_2$};
+%   \node[blue,anchor=south] at (6,0.45) {$w_0,w_1,w_2$};
+%   \node at (3.5,0) {$\cdots$};
+%   \node[anchor=north] at (3.5,-0.65) {те же веса};
+% \end{tikzpicture}
+% \caption{Базовая идея: один и тот же фильтр переносится вдоль ряда.}
+% \end{figure}
+%
+% Для одномерного входа $x_1,\ldots,x_k$ свёрточный фильтр длины $m$ можно записать как
+% \begin{equation}
+%   z_j
+%   =
+%   b
+%   +
+%   \sum_{r=0}^{m-1}
+%   w_r x_{j+r},
+%   \qquad
+%   j \in \overline{1,k-m+1}.
+% \end{equation}
+% Здесь $m$ называется kernel size.
+% Чем больше $m$, тем более длинный локальный паттерн видит один фильтр.
+% Если $m=3$, фильтр может реагировать на короткий поворот или скачок.
+% Если $m=24$ в почасовом ряду, один фильтр уже может смотреть на суточный профиль.
+%
+% На практике в одном слое обычно учится не один фильтр, а много фильтров.
+% Каждый фильтр порождает свой выходной канал.
+% Если ряд многомерный и в момент $t$ наблюдается вектор $y_t \in \mathbb{R}^d$, то переменные можно рассматривать как входные channels.
+% Тогда фильтр имеет веса по времени и по входным каналам:
+% \begin{equation}
+%   z_{q,j}
+%   =
+%   b_q
+%   +
+%   \sum_{\ell=1}^{d}
+%   \sum_{r=0}^{m-1}
+%   W_{q,\ell,r} x_{\ell,j+r},
+% \end{equation}
+% где $q$ нумерует выходные каналы.
+% Такой слой может одновременно смотреть, например, на недавнюю нагрузку, температуру и календарные признаки.
+% После нескольких свёрточных слоёв первые каналы обычно кодируют простые локальные формы, а более глубокие слои комбинируют их в более сложные паттерны.
+%
+% Stride задаёт шаг, с которым фильтр двигается по ряду.
+% При stride $1$ фильтр применяется почти в каждой позиции.
+% При stride $s>1$ длина выходной последовательности уменьшается, а слой становится похож на грубое сжатие по времени.
+% Это может быть полезно для классификации, но в forecasting слишком агрессивный stride легко удаляет важные моменты около конца контекста.
+%
+% \begin{figure}[H]
+% \centering
+% \begin{tikzpicture}[x=0.78cm,y=0.7cm,every node/.style={font=\small}]
+%   \foreach \i in {0,...,7} {
+%     \node[draw,minimum width=0.62cm,minimum height=0.48cm,fill=gray!8] at (\i,0) {$x_{\the\numexpr\i+1\relax}$};
+%   }
+%   \foreach \i in {0,2,4,6} {
+%     \fill[blue] (\i,-0.55) circle (2pt);
+%   }
+%   \draw[<->,blue,thick] (0,-1.0) -- (2,-1.0);
+%   \node[blue,anchor=north] at (1,-1.05) {$s=2$};
+%   \node[anchor=north] at (3,-1.75) {стартовые позиции: $x_1,x_3,x_5,x_7$};
+% \end{tikzpicture}
+% \caption{Stride $s=2$: соседние стартовые позиции фильтра разделены двумя шагами ряда.}
+% \end{figure}
+%
+% Padding задаёт, что делать у границ ряда.
+% Без padding длина выхода уменьшается, потому что фильтр не может быть центрирован около крайних точек.
+% При обычном same padding к ряду добавляют фиктивные значения так, чтобы длина выхода совпадала с длиной входа.
+% Для forecasting важна более строгая версия padding-а: causal padding.
+% На шаге $t$ модель не должна использовать $y_{t+1},y_{t+2}$ и другие будущие значения.
+% Поэтому causal convolution для прогноза строит активацию только из текущего и прошлых наблюдений:
+% \begin{equation}
+%   h_t
+%   =
+%   \phi\left(
+%     b
+%     +
+%     \sum_{r=0}^{m-1}
+%     w_r y_{t-r}
+%   \right).
+% \end{equation}
+% Технически это обычно реализуется padding-ом слева.
+% Если фильтр имеет длину $m$, перед началом последовательности добавляют $m-1$ фиктивных значений, а справа ничего не добавляют.
+% Тогда выход в момент $t$ зависит от $y_t,y_{t-1},\ldots,y_{t-m+1}$, но не зависит от будущего.
+%
+% \begin{figure}[H]
+% \centering
+% \begin{tikzpicture}[x=0.78cm,y=0.7cm,every node/.style={font=\small}]
+%   \foreach \i/\lab in {0/{$\varnothing$},1/{$\varnothing$},2/{$y_1$},3/{$y_2$},4/{$y_3$},5/{$y_4$}} {
+%     \node[draw,minimum width=0.68cm,minimum height=0.48cm,fill=gray!8] at (\i,0) {\lab};
+%   }
+%   \draw[thick,blue,rounded corners=2pt] (-0.35,-0.34) rectangle (2.35,0.34);
+%   \draw[->,blue,thick] (1,-0.45) -- (1,-1.05);
+%   \node[draw,minimum width=0.68cm,minimum height=0.42cm,fill=blue!8] at (1,-1.35) {$h_1$};
+%   \node[anchor=north] at (1,-1.75) {фиктивные значения только слева};
+% \end{tikzpicture}
+% \caption{Causal padding сохраняет длину выхода, не добавляя будущие значения справа.}
+% \end{figure}
+%
+% Receptive field показывает, какую часть входной истории может увидеть один выходной элемент.
+% Для одного causal convolution слоя с kernel size $m$ receptive field равен $m$.
+% Если поставить $L$ слоёв подряд, каждый с kernel size $m$ и stride $1$, то без dilation receptive field станет
+% \begin{equation}
+%   R = 1 + L(m-1).
+% \end{equation}
+% Это важная величина для временных рядов.
+% Если прогноз зависит от недельной сезонности, а receptive field покрывает только последние несколько часов, архитектура физически не может увидеть нужный контекст.
+% Именно поэтому дальше появляются dilated convolutions и TCN: они увеличивают receptive field без огромных фильтров и без последовательной рекуррентной обработки.
+%
+% Визуально многослойную 1D-свёртку удобно понимать как иерархию паттернов.
+% Первый слой строит простые локальные признаки из соседних значений ряда.
+% Второй слой применяет такие же локальные фильтры уже не к исходным $y_t$, а к активациям первого слоя.
+% Поэтому верхняя активация агрегирует не отдельные точки, а уже найденные локальные формы.
+% Такой взгляд хорошо согласуется с объяснением TCN в обзоре Unit8 \cite{unit8tcn2021}.
+%
+% \begin{figure}[H]
+% \centering
+% \begin{tikzpicture}[x=1.18cm,y=1.05cm,every node/.style={font=\small}]
+%   \node[draw,minimum width=0.92cm,minimum height=0.48cm,fill=gray!8] (y0) at (0,0) {$y_{t-4}$};
+%   \node[draw,minimum width=0.92cm,minimum height=0.48cm,fill=gray!8] (y1) at (1,0) {$y_{t-3}$};
+%   \node[draw,minimum width=0.92cm,minimum height=0.48cm,fill=gray!8] (y2) at (2,0) {$y_{t-2}$};
+%   \node[draw,minimum width=0.92cm,minimum height=0.48cm,fill=gray!8] (y3) at (3,0) {$y_{t-1}$};
+%   \node[draw,minimum width=0.92cm,minimum height=0.48cm,fill=gray!8] (y4) at (4,0) {$y_t$};
+%
+%   \node[draw,minimum width=1.05cm,minimum height=0.50cm,fill=blue!8] (h0) at (1,1.30) {$h_{t-2}^{(1)}$};
+%   \node[draw,minimum width=1.05cm,minimum height=0.50cm,fill=blue!8] (h1) at (2,1.30) {$h_{t-1}^{(1)}$};
+%   \node[draw,minimum width=1.05cm,minimum height=0.50cm,fill=blue!8] (h2) at (3,1.30) {$h_t^{(1)}$};
+%
+%   \node[draw,minimum width=1.08cm,minimum height=0.52cm,fill=green!12] (g) at (2,2.65) {$h_t^{(2)}$};
+%
+%   \foreach \from/\to in {y0/h0,y1/h0,y2/h0,y1/h1,y2/h1,y3/h1,y2/h2,y3/h2,y4/h2} {
+%     \draw[->,blue!42,line width=0.35pt] (\from.north) -- (\to.south);
+%   }
+%   \foreach \from in {h0,h1,h2} {
+%     \draw[->,green!55!black,line width=1.0pt] (\from.north) -- (g.south);
+%   }
+%
+%   \node[anchor=west,font=\footnotesize] at (4.85,1.30) {слой 1: локальные формы};
+%   \node[anchor=west,font=\footnotesize] at (4.85,2.65) {слой 2: формы из форм};
+% \end{tikzpicture}
+% \caption{Два свёрточных слоя с kernel size $m=3$: верхняя активация видит уже пять исходных точек.}
+% \end{figure}
+%
+% Dilation меняет не число весов фильтра, а расстояние между точками входа, к которым эти веса применяются.
+% При kernel size $m=3$ и dilation $d=2$ один фильтр всё ещё имеет три веса.
+% Но он смотрит не на соседние значения, а на $y_t,y_{t-2},y_{t-4}$.
+% Так receptive field растёт быстрее, чем число параметров.
+%
+% \begin{figure}[H]
+% \centering
+% \begin{tikzpicture}[x=1.02cm,y=0.96cm,every node/.style={font=\small}]
+%   \node[draw,minimum width=0.94cm,minimum height=0.50cm,fill=gray!8] (y0) at (0,0) {$y_{t-6}$};
+%   \node[draw,minimum width=0.94cm,minimum height=0.50cm,fill=gray!8] (y1) at (1,0) {$y_{t-5}$};
+%   \node[draw=blue,thick,minimum width=0.94cm,minimum height=0.50cm,fill=blue!8] (y2) at (2,0) {$y_{t-4}$};
+%   \node[draw,minimum width=0.94cm,minimum height=0.50cm,fill=gray!8] (y3) at (3,0) {$y_{t-3}$};
+%   \node[draw=blue,thick,minimum width=0.94cm,minimum height=0.50cm,fill=blue!8] (y4) at (4,0) {$y_{t-2}$};
+%   \node[draw,minimum width=0.94cm,minimum height=0.50cm,fill=gray!8] (y5) at (5,0) {$y_{t-1}$};
+%   \node[draw=blue,thick,minimum width=0.94cm,minimum height=0.50cm,fill=blue!8] (y6) at (6,0) {$y_t$};
+%
+%   \draw[<->,blue,thick] (2,0.72) -- (4,0.72);
+%   \node[blue,fill=white,inner sep=1pt] at (3,0.94) {$d=2$};
+%   \draw[<->,blue,thick] (4,0.72) -- (6,0.72);
+%   \node[blue,fill=white,inner sep=1pt] at (5,0.94) {$d=2$};
+%
+%   \node[draw,minimum width=1.04cm,minimum height=0.48cm,fill=blue!8] (h) at (4,-1.35) {$h_t$};
+%   \foreach \from in {y2,y4,y6} {
+%     \draw[->,blue!55,line width=0.4pt] (\from.south) -- (h.north);
+%   }
+%   \node[anchor=north,font=\footnotesize] at (4,-1.82) {входы фильтра: $y_{t-4},y_{t-2},y_t$};
+% \end{tikzpicture}
+% \caption{Dilated convolution: фильтр имеет те же три веса, но берёт входы с пропусками.}
+% \end{figure}
+%
+% Работа Wang, Yan, Oates показывает, что простые end-to-end свёрточные архитектуры для time series classification могут быть сильным бейзлайном без тяжёлого ручного feature engineering \cite{wang2017timeseries}.
+% В их FCN-бейзлайне используются блоки 1D convolution, batch normalization и ReLU, а после свёрточной части стоит global average pooling.
+% Для нашей лекции этот пример полезен не как готовая forecasting-модель, а как иллюстрация принципа: свёртки умеют извлекать признаки прямо из сырого ряда.
+%
+% \subsubsection{Одномерные, двумерные и многомерные свёртки}
+%
+% Выбор размерности свёртки зависит не от того, насколько сложна задача, а от того, какие оси данных имеют осмысленную локальность.
+% В 1D convolution есть одна пространственная ось свёртки: время.
+% Переменные многомерного ряда при этом обычно идут не как вторая пространственная ось, а как channels.
+% Такой подход говорит модели: локальность есть по времени, а взаимодействия между переменными надо учить через веса каналов.
+%
+% 2D convolution появляется, когда мы превращаем ряд в матрицу или изображение.
+% Например, после short-time Fourier transform или wavelet transform одна ось может отвечать за время, а другая за частоту.
+% Тогда локальность по двум осям имеет смысл: соседние моменты времени похожи, и соседние частоты тоже часто связаны.
+% Другой вариант -- строить матрицу «время $\times$ лаг» или «время $\times$ время», например recurrence plot.
+% В time-series imaging также используют Gramian Angular Field и Markov Transition Field.
+% В таких представлениях 2D CNN уже работает не с исходным рядом, а с его изображением или матричным описанием.
+%
+% Иногда встречается идея положить переменные многомерного ряда на вторую ось и применить 2D convolution к матрице «время $\times$ переменная».
+% С этим приёмом нужно быть осторожным.
+% 2D convolution предполагает, что соседство по обеим осям содержательно и что один и тот же локальный фильтр можно переносить вдоль обеих осей.
+% Для времени это обычно разумно.
+% Для набора переменных это не всегда верно.
+% Если столбцы идут как «цена», «температура», «праздник» и «остаток на складе», то перестановка столбцов меняет смысл соседства.
+% В такой ситуации переменные лучше считать channels или variate tokens, а не второй пространственной координатой.
+%
+% Многомерные свёртки полезны, когда у данных действительно есть несколько физических или структурных осей.
+% Например, сеть датчиков на двумерной карте даёт оси «широта $\times$ долгота $\times$ время».
+% Видео даёт оси «высота $\times$ ширина $\times$ время».
+% Медицинские и инженерные сигналы могут иметь оси «датчик $\times$ частота $\times$ время», если порядок датчиков или частот физически осмыслен.
+%
+% Схема ниже показывает четыре типовых случая и задаёт главный вопрос: по каким осям правда можно переносить один и тот же локальный фильтр.
+%
+% \begin{figure}[H]
+% \centering
+% \small
+% \begin{tabular}{@{}>{\raggedright\arraybackslash}m{0.30\linewidth}@{\hspace{0.02\linewidth}}>{\raggedright\arraybackslash}m{0.30\linewidth}@{\hspace{0.02\linewidth}}>{\centering\arraybackslash}m{0.36\linewidth}@{}}
+% \textbf{Как устроено} & \textbf{Когда уместно} & \textbf{Схема} \\
+% \\[-0.7em]
+% \textbf{1D convolution}\\[0.2em]
+% Одна ось --- время.
+% В multivariate ряде переменные входят как channels, но фильтр не скользит по ним.
+% &
+% Сырой univariate или multivariate ряд.
+% Локальные формы живут во времени.
+% &
+% \begin{tikzpicture}[x=0.68cm,y=0.60cm,every node/.style={font=\scriptsize}]
+%   \foreach \x in {0,...,5} {
+%     \node[draw,minimum width=0.66cm,minimum height=0.44cm,fill=gray!8] at (\x,0.40) {};
+%   }
+%   \draw[blue,thick,rounded corners=2pt] (2.55,0.12) rectangle (5.45,0.68);
+%   \node[blue,anchor=south] at (4,0.72) {kernel};
+%   \draw[->] (-0.10,-0.25) -- (5.95,-0.25);
+%   \node[anchor=west] at (6.15,-0.25) {time};
+% \end{tikzpicture}
+% \\[1.0em]
+% \textbf{2D convolution}\\[0.2em]
+% Ряд сначала стал матрицей или изображением: spectrogram, scalogram, recurrence plot, GAF/MTF.
+% &
+% Соседство честно по двум осям: time $\times$ frequency, time $\times$ lag или time $\times$ time.
+% &
+% \begin{tikzpicture}[x=0.58cm,y=0.45cm,every node/.style={font=\scriptsize}]
+%   \foreach \x in {0,...,5} {
+%     \foreach \y in {0,...,3} {
+%       \node[draw,minimum width=0.54cm,minimum height=0.34cm,fill=blue!6] at (\x,0.40+0.60*\y) {};
+%     }
+%   }
+%   \node[draw,minimum width=0.54cm,minimum height=0.34cm,fill=blue!30] at (2,1.00) {};
+%   \node[draw,minimum width=0.54cm,minimum height=0.34cm,fill=blue!22] at (3,1.00) {};
+%   \node[draw,minimum width=0.54cm,minimum height=0.34cm,fill=blue!24] at (2,1.60) {};
+%   \node[draw,minimum width=0.54cm,minimum height=0.34cm,fill=blue!35] at (3,1.60) {};
+%   \draw[blue,thick,rounded corners=2pt] (1.55,0.70) rectangle (3.45,1.90);
+%   \node[anchor=east] at (-0.45,1.30) {freq.};
+%   \draw[->] (-0.10,-0.30) -- (5.95,-0.30);
+%   \node[anchor=west] at (6.15,-0.30) {time};
+% \end{tikzpicture}
+% \\[1.0em]
+% \textbf{2D по переменным}\\[0.2em]
+% Кладём price, temp, holiday и stock на вторую ось.
+% Теперь фильтр видит окно time $\times$ vars, поэтому красная рамка проверяет смысл соседства.
+% &
+% Редкий случай.
+% Порядок переменных должен быть физическим: датчики, электроды, уровни.
+% &
+% \begin{tikzpicture}[x=0.58cm,y=0.45cm,every node/.style={font=\scriptsize}]
+%   \foreach \x in {0,...,5} {
+%     \foreach \y in {0,...,3} {
+%       \node[draw,minimum width=0.54cm,minimum height=0.34cm,fill=gray!8] at (\x,0.40+0.60*\y) {};
+%     }
+%   }
+%   \draw[red,thick,rounded corners=2pt] (1.55,0.70) rectangle (4.45,1.90);
+%   \node[anchor=east] at (-0.45,1.30) {vars};
+%   \draw[->] (-0.10,-0.30) -- (5.95,-0.30);
+%   \node[anchor=west] at (6.15,-0.30) {time};
+% \end{tikzpicture}
+% \\[1.0em]
+% \textbf{N-D convolution}\\[0.2em]
+% У данных есть настоящая геометрия: sensor grid, video, lat $\times$ lon $\times$ time.
+% &
+% Сетки датчиков, видео и пространственно-временные сигналы.
+% Близкие координаты действительно связаны.
+% &
+% \raisebox{-0.55cm}{%
+% \begin{tikzpicture}[x=0.46cm,y=0.46cm,every node/.style={font=\scriptsize}]
+%   \draw[gray] (0,0) grid (2.4,2.4);
+%   \begin{scope}[shift={(1.0,0.65)}]
+%     \draw[gray] (0,0) grid (2.4,2.4);
+%     \node[anchor=south] at (1.2,2.5) {$t+1$};
+%   \end{scope}
+%   \node[anchor=north] at (1.2,-0.15) {$t$};
+%   \draw[gray] (0,0) -- (1.0,0.65);
+%   \draw[gray] (2.4,0) -- (3.4,0.65);
+%   \draw[gray] (0,2.4) -- (1.0,3.05);
+%   \draw[gray] (2.4,2.4) -- (3.4,3.05);
+%   \foreach \x in {0.4,1.2,2.0} {
+%     \foreach \y in {0.4,1.2,2.0} {
+%       \fill[black] (\x,\y) circle (1.1pt);
+%       \fill[black] (\x+1.0,\y+0.65) circle (1.1pt);
+%     }
+%   }
+%   \draw[blue,thick,rounded corners=1pt] (0.35,1.15) rectangle (1.25,2.05);
+%   \draw[blue,thick,rounded corners=1pt] (1.35,1.80) rectangle (2.25,2.70);
+% \end{tikzpicture}
+% }
+% \end{tabular}
+% \caption{Как выбирать размерность свёртки: по содержательной локальности осей, а не по желанию сделать вход «картинкой».}
+% \end{figure}
+%
+% Коротко: 1D переносит фильтр только во времени; 2D по переменным делает порядок переменных частью модели.
+%
+% \subsubsection{Перенос знания из computer vision}
+%
+% Свёрточные сети для рядов во многом выросли из computer vision, но переносить оттуда стоит не всё подряд.
+% Лучше всего переносятся архитектурные идеи, потому что они помогают строить глубокие, устойчиво обучаемые модели с локальными фильтрами.
+% Для краткости будем думать о промежуточном представлении как о карте активаций $H \in \mathbb{R}^{C \times T}$, где $C$ --- channels, а $T$ --- временные позиции.
+%
+% \textbf{Residual connections.}
+% Residual connection добавляет к выходу блока его вход:
+% \begin{equation}
+%   H^{(\ell+1)}
+%   =
+%   H^{(\ell)}
+%   +
+%   F_{\ell}\!\left(H^{(\ell)}\right).
+% \end{equation}
+% Основная ветка $F_{\ell}$ тогда учит не всё представление заново, а поправку к уже найденным признакам.
+% Если поправка не нужна, блок может приблизиться к identity mapping и почти не испортить сигнал.
+% Это важно в глубокой сети: ранние слои могут сохранить простые локальные формы, а более поздние слои постепенно уточняют их.
+% С точки зрения градиента skip connection создаёт короткий путь назад через сложение, поэтому обучение менее похоже на длинную хрупкую цепочку преобразований.
+% Если число channels меняется, вход в shortcut обычно сначала приводят к нужной размерности простой проекцией.
+%
+% \textbf{Batch normalization.}
+% Batch normalization нормализует промежуточные активации внутри сети:
+% \begin{equation}
+%   \mathrm{BN}(a)
+%   =
+%   \gamma
+%   \frac{a-\mu_B}{\sqrt{\sigma_B^2+\varepsilon}}
+%   +
+%   \beta .
+% \end{equation}
+% Здесь $\mu_B$ и $\sigma_B^2$ считаются по mini-batch, а $\gamma$ и $\beta$ обучаются.
+% Логика простая: следующий слой получает признаки в более стабильном масштабе, пока предыдущие слои меняются во время обучения.
+% Это часто ускоряет и стабилизирует обучение глубоких CNN.
+% Для рядов важно не путать batch normalization с preprocessing: scaler для исходных данных всё равно подбирается только на train-части.
+%
+% \textbf{Global pooling.}
+% Global pooling сворачивает временную ось карты активаций.
+% Например, global average pooling задаёт
+% \begin{equation}
+%   g_c
+%   =
+%   \frac{1}{T}
+%   \sum_{t=1}^{T}
+%   H_{c,t}.
+% \end{equation}
+% Global max pooling вместо среднего оставляет максимальный отклик фильтра.
+% После pooling модель знает, какие фильтры сработали в окне, но почти теряет информацию о точной позиции отклика.
+% Это хорошо для classification, где часто важен факт наличия мотива.
+% В forecasting pooling используют осторожнее, потому что положение паттерна относительно конца окна может быть частью прогноза.
+%
+% \textbf{Multi-scale kernels.}
+% Multi-scale kernels --- это несколько фильтров с разными размерами окна или разным эффективным полем зрения.
+% Схематично можно записать несколько веток:
+% \begin{equation}
+%   U^{(m)}
+%   =
+%   \mathrm{Conv}_{m}(H),
+%   \qquad
+%   m \in \{3,5,9\}.
+% \end{equation}
+% Короткий фильтр видит резкий скачок, локальный излом или короткий импульс.
+% Более широкий фильтр видит фрагмент тренда, часть сезонного профиля или более длинный контекст.
+% Смысл в том, чтобы не заставлять архитектуру заранее выбирать один «правильный» масштаб.
+% Модель получает несколько временных масштабов и сама учит, какие из них полезны для задачи.
+%
+% \textbf{Inception-подобные blocks.}
+% Inception block развивает идею multi-scale kernels.
+% Один и тот же вход $H$ идёт в несколько параллельных веток:
+% \begin{equation}
+%   U^{(1)} = F_1(H),
+%   \qquad
+%   U^{(2)} = F_2(H),
+%   \qquad
+%   U^{(3)} = F_3(H).
+% \end{equation}
+% Затем результаты объединяются по channels:
+% \begin{equation}
+%   U
+%   =
+%   \mathrm{concat}_{\mathrm{channels}}
+%   \left(
+%     U^{(1)}, U^{(2)}, U^{(3)}
+%   \right).
+% \end{equation}
+% Одна ветка может использовать короткие фильтры, другая --- более широкие, третья --- pooling или сглаженное описание.
+% Это не ансамбль разных моделей, а один слой с несколькими параллельными способами прочитать один и тот же фрагмент.
+% Для временных рядов такая идея особенно понятна: в одном окне могут одновременно жить короткий скачок, локальный тренд, недельный кусок сезонности и календарный эффект.
+% Inception-подобный блок даёт модели несколько «оптик» на один фрагмент и затем складывает эти описания в общее представление.
+%
+% \textbf{Resnet-подобные blocks.}
+% Residual connection --- это механизм, а resnet block --- шаблон сборки слоя вокруг этого механизма.
+% Внутри обычно есть несколько свёрточных преобразований, activation, normalization и shortcut вокруг основной ветки:
+% \begin{equation}
+%   H^{(\ell+1)}
+%   =
+%   \phi\left(
+%     H^{(\ell)}
+%     +
+%     G_{\ell}(H^{(\ell)})
+%   \right).
+% \end{equation}
+% Функция $G_{\ell}$ отвечает за основную обработку, а внешнее сложение сохраняет короткий путь для сигнала.
+% Для рядов resnet-подобные blocks удобны как повторяемый шаблон: можно наращивать число уровней и собирать всё более сложные временные паттерны, не теряя обучаемость глубокого стека.
+%
+% \textbf{Pretrained ImageNet weights.}
+% Хуже переносится готовое предобучение на естественных изображениях.
+% Веса ImageNet обучались на краях, текстурах, объектах и композициях обычных фотографий.
+% Если мы превратили ряд в spectrogram, recurrence plot или GAF/MTF image, это ещё не значит, что такие признаки содержательно подходят к новой «картинке».
+% Иногда pretrained weights могут помочь как начальная инициализация, но это уже эмпирический вопрос, а не универсальное правило.
+% Формально это проблема domain shift: распределение естественных изображений и распределение изображений, построенных из ряда, обычно различаются.
+% Практический тезис простой: для временных рядов чаще переносим архитектурные идеи из computer vision, а не сами pretrained weights.
+%
 \subsection{TCN}
 
+% Temporal Convolutional Network, или TCN, можно воспринимать как аккуратно собранную CNN для последовательностей.
+% В ней сохраняют главное преимущество свёрток --- один и тот же локальный фильтр применяется во всех временных позициях.
+% Но добавляют три инженерных правила, без которых такая модель плохо подходит для forecasting: causal convolution, dilation и residual blocks.
+%
+% Первое правило --- causal convolution.
+% Обычная свёртка для классификации может смотреть на соседей слева и справа.
+% В прогнозировании это недопустимо: активация в момент $t$ не должна зависеть от $y_{t+1}$ и более поздних значений.
+% Поэтому TCN использует causal padding и строит выход только из прошлого и настоящего:
+% \begin{equation}
+%   h_t
+%   =
+%   \phi\left(
+%     b
+%     +
+%     \sum_{r=0}^{m-1}
+%     w_r y_{t-r}
+%   \right).
+% \end{equation}
+% Такой слой можно применять ко всей последовательности параллельно, но каждая позиция остаётся честной с точки зрения времени.
+%
+% \begin{figure}[H]
+% \centering
+% \begin{tikzpicture}[x=0.82cm,y=0.70cm,every node/.style={font=\scriptsize}]
+%   \foreach \i/\lab in {0/{$y_{t-4}$},1/{$y_{t-3}$},2/{$y_{t-2}$},3/{$y_{t-1}$},4/{$y_t$}} {
+%     \node[draw,minimum width=0.72cm,minimum height=0.44cm,fill=gray!8] at (\i,0.55) {\lab};
+%   }
+%   \foreach \i/\lab in {5/{$y_{t+1}$},6/{$y_{t+2}$}} {
+%     \node[draw,minimum width=0.72cm,minimum height=0.44cm,fill=red!8] at (\i,0.55) {\lab};
+%   }
+%   \draw[blue,thick,rounded corners=2pt] (1.55,0.24) rectangle (4.45,0.86);
+%   \node[blue,anchor=south] at (3,0.91) {kernel};
+%   \node[red!70!black,anchor=north] at (5.5,0.18) {future};
+%   \node[draw,minimum width=0.70cm,minimum height=0.38cm,fill=blue!8] (h) at (3,-0.45) {$h_t$};
+%   \draw[->,blue,thick] (3,0.20) -- (h.north);
+%   \draw[->] (-0.15,-0.92) -- (6.55,-0.92);
+%   \node[anchor=west] at (6.75,-0.92) {time};
+% \end{tikzpicture}
+% \caption{Causal convolution для выхода $h_t$: фильтр использует только прошлое и текущий момент, а будущие значения остаются справа от окна.}
+% \end{figure}
+%
+% Второе правило --- dilation.
+% В TCN это тот же механизм dilated convolution, который мы уже ввели выше.
+% В TCN такие слои ставят стеком с dilation $1,2,4,8,\ldots$, чтобы быстро наращивать receptive field без огромных kernels.
+% Для forecasting это особенно удобно: модель может видеть длинную сезонность без рекуррентного прохода по всем моментам времени.
+%
+% Третье правило --- residual blocks.
+% Глубокая TCN обычно строится не как голая цепочка свёрток, а как стек блоков
+% \begin{equation}
+%   x^{(\ell+1)}
+%   =
+%   x^{(\ell)}
+%   +
+%   F_{\ell}(x^{(\ell)}),
+% \end{equation}
+% где $F_{\ell}$ содержит одну или несколько causal dilated convolutions, нелинейности, нормализацию и dropout.
+% Если число channels меняется, residual ветку согласуют через $1\times 1$ convolution.
+% Residual connection даёт модели короткий путь для градиента и позволяет наращивать глубину без ощущения, что каждый новый слой обязан заново переписать всё представление.
+%
+% \begin{figure}[H]
+% \centering
+% \begin{tikzpicture}[x=1.0cm,y=0.82cm,every node/.style={font=\small}]
+%   \node[draw,minimum width=1.15cm,minimum height=0.52cm,fill=gray!8] (x) at (0,0) {$x^{(\ell)}$};
+%   \node[draw,rounded corners=2pt,minimum width=3.00cm,minimum height=0.74cm,fill=blue!8,align=center] (f) at (3.0,0) {$F_{\ell}$\\ causal dilated conv};
+%   \node[circle,draw,minimum size=0.48cm,inner sep=0pt,fill=white] (plus) at (5.55,0) {$+$};
+%   \node[draw,minimum width=1.30cm,minimum height=0.52cm,fill=gray!8] (out) at (7.25,0) {$x^{(\ell+1)}$};
+%   \draw[->,thick] (x.east) -- (f.west);
+%   \draw[->,thick] (f.east) -- (plus.west);
+%   \draw[->,thick] (plus.east) -- (out.west);
+%   \draw[->,thick] (x.north) |- (2.75,1.08) -| (plus.north);
+%   \node[anchor=south] at (2.75,1.10) {skip};
+% \end{tikzpicture}
+% \caption{Residual block: основная ветка учит поправку $F_{\ell}(x^{(\ell)})$, а skip connection переносит вход напрямую к суммированию.}
+% \end{figure}
+%
+% \subsubsection{Настройка TCN}
+%
+% После выбора receptive field и dilation schedule остаётся настроить сам residual block как обучаемый модуль.
+% В практических реализациях TCN для forecasting обычно используют activation, weight normalization и dropout \cite{unit8tcn2021}.
+%
+% \textbf{Activation.}
+% После convolution layers добавляют нелинейность, чаще всего ReLU.
+% Иначе стек свёрток и residual connections будет слишком близок к линейному преобразованию последовательности.
+% Для forecasting важно отдельно проверить последний слой.
+% Если целевой ряд может принимать отрицательные значения, последнюю ReLU лучше убрать, иначе модель искусственно запретит отрицательные прогнозы.
+%
+% \textbf{Weight normalization.}
+% Weight normalization применяют к convolution layers, чтобы стабилизировать масштаб весов во время обучения.
+% В глубоких свёрточных стеках это часто делает оптимизацию спокойнее.
+%
+% \textbf{Dropout.}
+% Dropout используют как regularization внутри residual block, обычно после convolution layers.
+% Он снижает overfitting и мешает модели запоминать шум отдельных окон.
+%
+% Именно эта комбинация объясняет, почему TCN стала серьёзной альтернативой RNN.
+% RNN обрабатывает последовательность рекуррентно: состояние в момент $t$ зависит от состояния в момент $t-1$, поэтому обучение плохо параллелится по времени.
+% TCN строит все временные позиции одного слоя одновременно, потому что свёртка не требует последовательного hidden-state transition.
+% Длинная память при этом задаётся не длиной рекуррентной цепочки, а размером receptive field.
+% В работе Bai, Kolter, Koltun простая TCN-схема систематически сравнивалась с canonical recurrent networks вроде LSTM и на разных sequence modeling задачах показала себя сильной базовой архитектурой с более длинной effective memory \cite{bai2018tcn}.
 
 \subsection{Transformer}
 
@@ -1377,6 +1913,24 @@ Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks.
 SIGIR, 2018.
 \url{https://arxiv.org/abs/1703.07015}.
 
+% \bibitem{wang2017timeseries}
+% Wang Z., Yan W., Oates T.
+% Time Series Classification from Scratch with Deep Neural Networks: A Strong Baseline.
+% IJCNN, 2017.
+% \url{https://arxiv.org/pdf/1611.06455}.
+%
+% \bibitem{bai2018tcn}
+% Bai S., Kolter J. Z., Koltun V.
+% An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling.
+% arXiv, 2018.
+% \url{https://arxiv.org/abs/1803.01271}.
+%
+% \bibitem{unit8tcn2021}
+% Lässig F.
+% Temporal Convolutional Networks and Forecasting.
+% Unit8, 2021.
+% \url{https://unit8.com/resources/temporal-convolutional-networks-and-forecasting/}.
+%
 \bibitem{pascanu2013}
 Pascanu R., Mikolov T., Bengio Y.
 On the difficulty of training recurrent neural networks.
